@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "mcs-client": "^1.0.0"
+  }
+}
