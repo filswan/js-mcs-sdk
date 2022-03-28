@@ -15,7 +15,7 @@
 
 # Introduction
 
-A client library for the https://mcs.filswan.com/ service. It provides a convenient interface for working with the MCS API from a web browser or Node.js. This client has the following functionalities:
+A client library for the Multi-Chain Storage (MCS) https://mcs.filswan.com service. It provides a convenient interface for working with the MCS API from a web browser or Node.js. This client has the following functionalities:
 
 - [**POST**](#uploadfiles-options---uploading-files)    upload file to Filswan IPFS gate way
 - [**POST**](#makepaymentpayloadcid-amount---pay-for-file-storage)    make payment to swan filecoin storage gate way
@@ -189,4 +189,5 @@ Feel free to join in and discuss. Suggestions are welcome! [Open an issue](https
 This project is sponsored by Filecoin Foundation
 
 [Flink SDK - A data provider offers Chainlink Oracle service for Filecoin Network ](https://github.com/filecoin-project/devgrants/issues/463)
-<img src="filecoin.png" width="200">
+
+<img src="https://github.com/filswan/flink/blob/main/filecoin.png" width="200">
