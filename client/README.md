@@ -72,12 +72,11 @@ const client = new mcsClient({
 })
 
 async function main() {
-  const testFile = JSON.stringify({ data: 'Hello, World!' })
+  const testFile = JSON.stringify({ address: client.publicKey })
   const fileArray = [{ fileName: 'testFile.json', file: testFile }]
 
   const uploadResponse = await client.upload(fileArray)
-  console.log(uploadResponse[0].data.ipfs_url)
-  // https://calibration-ipfs.filswan.com/ipfs/QmPjwPk7xiQWVA3VLoK9F9nk2cL7oE2LRFU6jzLwc9cnQm
+  console.log(uploadResponse)
 }
 
 main()
@@ -100,8 +99,8 @@ You can use the MCS Client to upload and array of file(s) to Filswan IPFS gatewa
 
 ```js
 const fileArray = [
-  { fileName: 'file1', file: await fs.readFile('./file1.txt') },
-  { fileName: 'file2', file: await fs.readFile('./file2.txt') },
+  { fileName: 'file1', file: fs.createReadStream('./file1.txt') },
+  { fileName: 'file2', file: fs.createReadStream('./file2.txt') },
 ]
 
 //optional, showing default options
@@ -112,6 +111,30 @@ const options = {
 }
 
 const uploadResponses = await client.upload(fileArray, options)
+console.log(uploadResponses)
+
+/* return
+    [
+      {
+        status: 'success',
+        code: '200',
+        data: {
+          payload_cid: 'bafk...',
+          ipfs_url: 'https://calibration-ipfs.filswan.com/ipfs/Qm...',
+          need_pay: <int>
+        }
+      },
+      {
+        status: 'success',
+        code: '200',
+        data: {
+          payload_cid: 'bafk...',
+          ipfs_url: 'https://calibration-ipfs.filswan.com/ipfs/Qm...',
+          need_pay: <int>
+        }
+      }
+    ]
+*/
 ```
 
 ### `makePayment(payloadCid, amount)` - Pay for File Storage
@@ -124,6 +147,10 @@ const payloadCid = uploadResponses[0].data.payload_cid
 
 const tx = await client.makePayment(payloadCid, '10')
 console.log(tx.transactionHash)
+
+/* return (tx hash, can view on mumbai polygonscan)
+    0x...
+*/
 ```
 
 Note that `amount` is a type String. This is to avoid Big Number precision errors when dealing to amounts in [Wei](https://www.investopedia.com/terms/w/wei.asp)
@@ -133,14 +160,28 @@ Note that `amount` is a type String. This is to avoid Big Number precision error
 Check the Filecoin storage status of a file using it's `deal_cid`
 
 ```js
-const uploadInfo = await client.listUploads(
-  mcs.publicKey,
-  'bafkqadkimvwgy3zmeblw64tmmqqq',
-)
+PAYLOAD_CID = ''
+
+// search for file info to get deal_cid
+const uploadInfo = await client.listUploads(client.publicKey, PAYLOAD_CID)
 const dealCid = uploadInfo.data[0].deal_cid
 
-const fileStatus = await client.checkStatus(dealCid)
-console.log(fileStatus)
+if (dealCid) {
+  const fileStatus = await client.checkStatus(dealCid)
+  console.log(fileStatus)
+} else {
+  console.log('deal_cid not found')
+}
+
+/* return
+    {
+        status: 'success',
+        code: '200',
+        data: {
+            offline_deal_logs: [ [Object], [Object], [Object], [Object], [Object] ]
+        }
+    }
+*/
 ```
 
 ### `mintAsset(payloadCid, nft)` - Mint Asset as NFT
@@ -157,6 +198,10 @@ const nft = {
 
 const mintTx = await client.mintAsset(payloadCid, nft)
 console.log(mintTx)
+
+/* return
+    0x...
+*/
 ```
 
 ### `listUploads(wallet, payloadCid, fileName, pageNumber, pageSize)` - View Uploaded Files
