@@ -1,8 +1,6 @@
-<h1 align="center"> MCS Client</h1>
-
-<p align="center">
-  <a href="https://discord.com/channels/867879887871672331"><img src="https://img.shields.io/badge/chat-discord?style=for-the-badge&logo=discord&label=discord&logoColor=ffffff&color=7389D8" /></a>
-</p>
+# js-mcs-sdk
+[![Made by FilSwan](https://img.shields.io/badge/made%20by-FilSwan-green.svg)](https://www.filswan.com/)
+[![Chat on discord](https://img.shields.io/badge/join%20-discord-brightgreen.svg)](https://discord.com/invite/KKGhy8ZqzK)
 
 # Table of Contents <!-- omit in toc -->
 
@@ -17,7 +15,7 @@
 
 # Introduction
 
-A client library for the https://mcs.filswan.com/ service. It provides a convenient interface for working with the MCS API from a web browser or Node.js. This client has the following functionalities:
+A client library for the Multi-Chain Storage (MCS) https://mcs.filswan.com service. It provides a convenient interface for working with the MCS API from a web browser or Node.js. This client has the following functionalities:
 
 - [**POST**](#uploadfiles-options---uploading-files)    upload file to Filswan IPFS gate way
 - [**POST**](#makepaymentpayloadcid-amount---pay-for-file-storage)    make payment to swan filecoin storage gate way
@@ -229,4 +227,12 @@ console.log(await client.getFileDetails(payloadCid, 0))
 
 # Contributing
 
-Feel free to join in and discuss. Suggestions are welcome! [Open an issue](https://github.com/filswan/nft/issues) or [Join the Discord](https://discord.com/channels/867879887871672331)!
+Feel free to join in and discuss. Suggestions are welcome! [Open an issue](https://github.com/filswan/nft/issues) or [Join the Discord](https://discord.com/invite/KKGhy8ZqzK)!
+
+## Sponsors
+
+This project is sponsored by Filecoin Foundation
+
+[Flink SDK - A data provider offers Chainlink Oracle service for Filecoin Network ](https://github.com/filecoin-project/devgrants/issues/463)
+
+<img src="https://github.com/filswan/flink/blob/main/filecoin.png" width="200">
