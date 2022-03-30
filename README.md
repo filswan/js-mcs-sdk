@@ -1,4 +1,5 @@
 # js-mcs-sdk
+
 [![Made by FilSwan](https://img.shields.io/badge/made%20by-FilSwan-green.svg)](https://www.filswan.com/)
 [![Chat on discord](https://img.shields.io/badge/join%20-discord-brightgreen.svg)](https://discord.com/invite/KKGhy8ZqzK)
 
@@ -141,9 +142,8 @@ Use USDC tokens to pay for your _unpaid_ uploaded file. You need the `payload_ci
 
 ```js
 const payloadCid = uploadResponses[0].data.payload_cid
-// bafkqadkimvwgy3zmeblw64tmmqqq
 
-const tx = await client.makePayment(payloadCid, '10')
+const tx = await client.makePayment(payloadCid, '0.5')
 console.log(tx.transactionHash)
 
 /* return (tx hash, can view on mumbai polygonscan)
@@ -227,7 +227,7 @@ console.log(await client.getFileDetails(payloadCid, 0))
 
 # Contributing
 
-Feel free to join in and discuss. Suggestions are welcome! [Open an issue](https://github.com/filswan/nft/issues) or [Join the Discord](https://discord.com/invite/KKGhy8ZqzK)!
+Feel free to join in and discuss. Suggestions are welcome! [Open an issue](https://github.com/filswan/js-mcs-sdk/issues) or [Join the Discord](https://discord.com/invite/KKGhy8ZqzK)!
 
 ## Sponsors
 
