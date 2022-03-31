@@ -111,7 +111,9 @@ const options = {
 
 const uploadResponses = await client.upload(fileArray, options)
 console.log(uploadResponses)
+```
 
+```
 /* return
     [
       {
@@ -141,11 +143,13 @@ console.log(uploadResponses)
 Use USDC tokens to pay for your _unpaid_ uploaded file. You need the `payload_cid` of the file. Returns a [web3 receipt object](https://www.investopedia.com/terms/w/wei.asp)
 
 ```js
-const payloadCid = uploadResponses[0].data.payload_cid
+const PAYLOAD_CID = ''
 
-const tx = await client.makePayment(payloadCid, '0.5')
+const tx = await client.makePayment(PAYLOAD_CID, '0.05')
 console.log(tx.transactionHash)
+```
 
+```
 /* return (tx hash, can view on mumbai polygonscan)
     0x...
 */
@@ -170,15 +174,18 @@ if (dealCid) {
 } else {
   console.log('deal_cid not found')
 }
+```
+
+```
 
 /* return
-    {
-        status: 'success',
-        code: '200',
-        data: {
-            offline_deal_logs: [ [Object], [Object], [Object], [Object], [Object] ]
-        }
+{
+    status: 'success',
+    code: '200',
+    data: {
+        offline_deal_logs: [ [Object], [Object], [Object], [Object], [Object] ]
     }
+}
 */
 ```
 
@@ -187,19 +194,17 @@ if (dealCid) {
 After you upload a file, you can mint it to Opensea (testnet) as an NFT. First you will need your NFT metadata. Similarly to `makePayment` this function will return a [web3 receipt object](https://www.investopedia.com/terms/w/wei.asp)
 
 ```js
+const PAYLOAD_CID = ''
+const IPFS_URL = ''
+
 const nft = {
   name: 'File 1', // the name of your NFT
   description: 'This is the first file', // the description of your NFT
-  image: uploadResponses[0].data.ipfs_url, // asset URI, images will render on Opensea
-  tx_hash: '0x...', // payment tx_hash, will be inserted automatically
+  image: IPFS_URL, // asset URI, images will render on Opensea
 }
 
-const mintTx = await client.mintAsset(payloadCid, nft)
+const mintTx = await client.mintAsset(PAYLOAD_CID, nft)
 console.log(mintTx)
-
-/* return
-    0x...
-*/
 ```
 
 ### `listUploads(wallet, payloadCid, fileName, pageNumber, pageSize)` - View Uploaded Files
