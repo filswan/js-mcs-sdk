@@ -51,6 +51,15 @@ const postMintInfo = async (mintInfo) => {
   }
 }
 
+const postLockPayment = async (payInfo) => {
+  try {
+    const res = await axios.post(`${MCS_API}/billing/deal/lockpayment`, payInfo)
+    return res?.data
+  } catch (err) {
+    console.error(err)
+  }
+}
+
 const getDealList = async (address, cid, name, pageNumber, pageSize) => {
   try {
     const res = await axios.get(
@@ -68,5 +77,6 @@ module.exports = {
   getDealDetail,
   getPaymentInfo,
   postMintInfo,
+  postLockPayment,
   getDealList,
 }

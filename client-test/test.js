@@ -12,8 +12,7 @@ async function main() {
   ]
 
   const uploadResponse = await client.upload(fileArray)
-  console.log(uploadResponse[0].data.ipfs_url)
-  // https://calibration-ipfs.filswan.com/ipfs/QmPjwPk7xiQWVA3VLoK9F9nk2cL7oE2LRFU6jzLwc9cnQm
+  console.log(uploadResponse[0].data)
 }
 
 main()
