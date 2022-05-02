@@ -10,23 +10,22 @@ const oneThousand = '1000000000000000000000'
 const lockToken = async (web3, payer, uploadId, wCid, amount) => {
   const params = await getParams()
 
+  const usdcAddress = params.USDC_ADDRESS
+  const recipientAddress = params.PAYMENT_RECIPIENT_ADDRESS
+  const gatewayContractAddress = params.PAYMENT_CONTRACT_ADDRESS
+  const gasLimit = params.GAS_LIMIT
+  const multiplyFactor = params.PAY_MULTIPLY_FACTOR
+
   const optionsObj = {
     from: payer,
-    gas: params.PAY_GAS_LIMIT,
+    gas: gasLimit,
   }
-
-  const usdcAddress = params.USDC_ADDRESS
-  const recipientAddress = params.RECIPIENT
-  const gatewayContractAddress = params.SWAN_PAYMENT_CONTRACT_ADDRESS
 
   const USDCInstance = new web3.eth.Contract(erc20ABI, usdcAddress)
   const approveTx = await USDCInstance.methods
     .approve(
       gatewayContractAddress,
-      web3.utils.toWei(
-        (amount * params.PAY_WITH_MULTIPLY_FACTOR).toString(),
-        'ether',
-      ),
+      web3.utils.toWei((amount * multiplyFactor).toString(), 'ether'),
     )
     .send(optionsObj)
 
@@ -38,9 +37,7 @@ const lockToken = async (web3, payer, uploadId, wCid, amount) => {
   const lockObj = {
     id: wCid,
     minPayment: web3.utils.toWei(amount, 'ether'),
-    amount: (
-      web3.utils.toWei(amount, 'ether') * params.PAY_WITH_MULTIPLY_FACTOR
-    ).toString(),
+    amount: (web3.utils.toWei(amount, 'ether') * multiplyFactor).toString(),
     lockTime: 86400 * params.LOCK_TIME,
     recipient: recipientAddress,
     size: 0,
@@ -52,7 +49,7 @@ const lockToken = async (web3, payer, uploadId, wCid, amount) => {
     .send(optionsObj)
 
   const lockPaymentObj = {
-    source_file_upload_id: uploadId,
+    source_file_upload_id: parseInt(uploadId),
     tx_hash: tx.transactionHash,
   }
 

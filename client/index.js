@@ -60,8 +60,8 @@ class mcsClient {
    * @param {string} amount - pass amount as string to avoid BN precision errors
    * @returns {Object} payment transaction response
    */
-  makePayment = async (payloadCid, amount) =>
-    await lockToken(this.web3, this.publicKey, payloadCid, amount)
+  makePayment = async (uploadId, payloadCid, amount) =>
+    await lockToken(this.web3, this.publicKey, uploadId, payloadCid, amount)
 
   /**
    * get filecoin status for file
