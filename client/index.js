@@ -60,32 +60,39 @@ class mcsClient {
    * @param {string} amount - pass amount as string to avoid BN precision errors
    * @returns {Object} payment transaction response
    */
-  makePayment = async (uploadId, payloadCid, amount) =>
-    await lockToken(this.web3, this.publicKey, uploadId, payloadCid, amount)
+  makePayment = async (sourceFileUploadId, payloadCid, amount, size) =>
+    await lockToken(
+      this.web3,
+      this.publicKey,
+      sourceFileUploadId,
+      payloadCid,
+      amount,
+      size,
+    )
 
   /**
    * get filecoin status for file
    *
-   * @param {string} dealCid
+   * @param {string} sourceFileUploadId
    * @returns {Object} file status on MCS
    */
-  checkStatus = async (dealCid) => await getFileStatus(dealCid)
+  checkStatus = async (sourceFileUploadId) =>
+    await getFileStatus(sourceFileUploadId)
 
   /**
    * Mints file as NFT availiable to view on Opensea
    *
-   * @param {string} payloadCid
+   * @param {string} sourceFileUploadId
    * @param {{name: string, description: string, image: string, tx_hash: string}} nft
    * @returns {Object} mint info reponse object
    */
-  mintAsset = async (payloadCid, nft) =>
-    await mint(this.web3, this.publicKey, payloadCid, nft)
+  mintAsset = async (sourceFileUploadId, nft) =>
+    await mint(this.web3, this.publicKey, sourceFileUploadId, nft)
 
   /**
    * List the user's uploaded files on MCS
    *
    * @param {string} [wallet] - shows files for an address
-   * @param {string} [payloadCid] - filter by payload_cid
    * @param {string} [fileName] - filter by file_name
    * @param {number} [pageNumber=1]
    * @param {number} [pageSize=10]
@@ -94,27 +101,20 @@ class mcsClient {
    */
   listUploads = async (
     wallet = this.publicKey,
-    payloadCid = '',
     fileName = '',
     pageNumber = 1,
     pageSize = 10,
   ) =>
-    await getDealList(
-      wallet || this.publicKey,
-      payloadCid,
-      fileName,
-      pageNumber,
-      pageSize,
-    )
+    await getDealList(wallet || this.publicKey, fileName, pageNumber, pageSize)
 
   /**
    *
-   * @param {string} payloadCid
+   * @param {string} sourceFileUploadId
    * @param {number} [dealId=0] - dealId can be found from listUploads
    * @returns
    */
-  getFileDetails = async (payloadCid, dealId = 0) =>
-    await getDealDetail(payloadCid, dealId)
+  getFileDetails = async (sourceFileUploadId, dealId = 0) =>
+    await getDealDetail(sourceFileUploadId, dealId)
 }
 
 module.exports = { mcsClient }

@@ -7,7 +7,7 @@ const ten = '10000000000000000000'
 const oneHundred = '100000000000000000000'
 const oneThousand = '1000000000000000000000'
 
-const lockToken = async (web3, payer, uploadId, wCid, amount) => {
+const lockToken = async (web3, payer, uploadId, wCid, amount, size) => {
   const params = await getParams()
 
   const usdcAddress = params.USDC_ADDRESS
@@ -40,8 +40,8 @@ const lockToken = async (web3, payer, uploadId, wCid, amount) => {
     amount: (web3.utils.toWei(amount, 'ether') * multiplyFactor).toString(),
     lockTime: 86400 * params.LOCK_TIME,
     recipient: recipientAddress,
-    size: 0,
-    copyLimit: 1,
+    size: size,
+    copyLimit: 5,
   }
 
   const tx = await paymentInstance.methods
