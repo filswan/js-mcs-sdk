@@ -105,7 +105,7 @@ const fileArray = [
 //optional, showing default options
 const options = {
   delay: 1000, // delay between upload API calls for each file. May need to be raised for larger files
-  duration: 180, // the number of days to store the file on the Filecoin network.
+  duration: 525, // the number of days to store the file on the Filecoin network.
   fileType: 0, // set to 1 for nft metadata files. type 1 files will not show on the UI.
 }
 
@@ -120,64 +120,82 @@ console.log(uploadResponses)
         status: 'success',
         code: '200',
         data: {
-          payload_cid: 'bafk...',
+          source_file_upload_id: <int>
+          payload_cid: 'Qm...',
           ipfs_url: 'https://calibration-ipfs.filswan.com/ipfs/Qm...',
-          need_pay: <int>
+          file_size: <int>,
+          w_cid: <uuid>payload_cid
         }
       },
       {
         status: 'success',
         code: '200',
         data: {
-          payload_cid: 'bafk...',
+          source_file_upload_id: <int>
+          payload_cid: 'Qm...',
           ipfs_url: 'https://calibration-ipfs.filswan.com/ipfs/Qm...',
-          need_pay: <int>
+          file_size: <int>,
+          w_cid: <uuid>payload_cid
         }
       }
     ]
 */
 ```
 
-### `makePayment(payloadCid, amount)` - Pay for File Storage
+### `makePayment(sourceFileUploadId, wCid, fileSize, minAmount)` - Pay for File Storage
 
-Use USDC tokens to pay for your _unpaid_ uploaded file. You need the `payload_cid` of the file. Returns a [web3 receipt object](https://www.investopedia.com/terms/w/wei.asp)
+Use USDC tokens to pay for your _unpaid_ uploaded file. You need some information of the file first. Returns a paymentInfo object.
 
 ```js
-const PAYLOAD_CID = ''
+const SOURCE_FILE_UPLOAD_ID = ''
+const W_CID = ''
+const FILE_SIZE = ''
+const MIN_AMOUNT = '0.5' // in ETH
 
-const tx = await client.makePayment(PAYLOAD_CID, '0.05')
-console.log(tx.transactionHash)
+const tx = await client.makePayment(
+  SOURCE_FILE_UPLOAD_ID,
+  W_CID,
+  MIN_AMOUNT,
+  FILE_SIZE,
+)
+console.log(tx)
 ```
 
 ```
-/* return (tx hash, can view on mumbai polygonscan)
-    0x...
+/* return
+  {
+    status: 'success',
+    code: 200,
+    data: {
+      source_file_upload_id: <int>,
+      tx_hash: '0x...'
+    }
+  }
 */
 ```
 
-Note that `amount` is a type String. This is to avoid Big Number precision errors when dealing to amounts in [Wei](https://www.investopedia.com/terms/w/wei.asp)
+Note that `minAmount` is a type String. This is to avoid Big Number precision errors when dealing to amounts in [Wei](https://www.investopedia.com/terms/w/wei.asp)
 
-### `checkStatus(dealCid)` - Check File Status from Filecoin
+### `checkStatus(dealId)` - Check File Status from Filecoin
 
-Check the Filecoin storage status of a file using it's `deal_cid`
+Check the Filecoin storage status of a file using it's `dealId`
 
 ```js
-PAYLOAD_CID = ''
+// search for file info to get deal_id
+const uploadInfo = await client.listUploads()
+//console.log(uploadInfo.data.source_file_upload)
 
-// search for file info to get deal_cid
-const uploadInfo = await client.listUploads(client.publicKey, PAYLOAD_CID)
-const dealCid = uploadInfo.data[0].deal_cid
+const DEAL_ID = ''
 
-if (dealCid) {
-  const fileStatus = await client.checkStatus(dealCid)
+if (DEAL_ID) {
+  const fileStatus = await client.checkStatus(DEAL_ID)
   console.log(fileStatus)
 } else {
-  console.log('deal_cid not found')
+  console.log('deal_id not found')
 }
 ```
 
 ```
-
 /* return
 {
     status: 'success',
@@ -191,23 +209,42 @@ if (dealCid) {
 
 ### `mintAsset(payloadCid, nft)` - Mint Asset as NFT
 
-After you upload a file, you can mint it to Opensea (testnet) as an NFT. First you will need your NFT metadata. Similarly to `makePayment` this function will return a [web3 receipt object](https://www.investopedia.com/terms/w/wei.asp)
+After you upload a file, you can mint it to Opensea (testnet) as an NFT. First you will need your NFT metadata. Similarly to `makePayment` this function will return a mintInfo object
 
 ```js
-const PAYLOAD_CID = ''
+const SOURCE_FILE_UPLOAD_ID = ''
 const IPFS_URL = ''
 
 const nft = {
-  name: 'File 1', // the name of your NFT
-  description: 'This is the first file', // the description of your NFT
+  name: 'NFT NAME', // the name of your NFT
   image: IPFS_URL, // asset URI, images will render on Opensea
+  description: 'NFT DESCRIPTION', // description of your NFT
+  attributes: [], // NFT attributes displayed on Opensea
 }
 
-const mintTx = await client.mintAsset(PAYLOAD_CID, nft)
+const mintTx = await client.mintAsset(SOURCE_FILE_UPLOAD_ID, nft)
 console.log(mintTx)
 ```
 
-### `listUploads(wallet, payloadCid, fileName, pageNumber, pageSize)` - View Uploaded Files
+```js
+/* return
+{
+  status: 'success',
+  code: 200,
+  data: {
+    id: <int>,
+    source_file_upload_id: <int>,
+    nft_tx_hash: '0x...',
+    mint_address: '0x...',
+    token_id: <int>,
+    create_at: <unix timestamp>,
+    update_at: <unix timestamp>
+  }
+}
+*/
+```
+
+### `listUploads(wallet, fileName, orderBy, isAscend, pageNumber, pageSize)` - View Uploaded Files
 
 This function will return an object of uploaded files. All the parameters have default values, so you can pass no parameters to view all your uploaded files.
 
@@ -215,19 +252,21 @@ This function will return an object of uploaded files. All the parameters have d
 console.log(await client.listUploads())
 ```
 
-You can search for files, either by `payload_cid` or by `file_name`
+You can search for files, either by `file_name`
 
 ```js
-console.log(await client.listUploads(client.publicKey, payloadCid))
-console.log(await client.listUploads(client.publicKey, '', 'file1')
+console.log(await client.listUploads(client.publicKey, 'file1')
 ```
 
-### `getFileDetails(payloadCid, dealId)` View File Details
+### `getFileDetails(sourceFileUploadId, dealId)` View File Details
 
 Using `listUploads`, you can retreive the `payload_cid` and `deal_id` of a file. Calling this function will return an object containing the details of the file.
 
 ```
-console.log(await client.getFileDetails(payloadCid, 0))
+const SOURCE_FILE_UPLOAD_ID = ''
+const DEAL_ID = ''
+
+console.log(await client.getFileDetails(SOURCE_FILE_UPLOAD_ID, DEAL_ID))
 ```
 
 # Contributing

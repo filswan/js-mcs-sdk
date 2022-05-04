@@ -10,11 +10,9 @@ const getParams = async () => {
   }
 }
 
-const getFileStatus = async (sourceFileUploadId) => {
+const getFileStatus = async (dealId) => {
   try {
-    const res = await axios.get(
-      `${MCS_API}/storage/deal/log/${sourceFileUploadId}`,
-    )
+    const res = await axios.get(`${MCS_API}/storage/deal/log/${dealId}`)
     return res.data
   } catch (err) {
     console.error(err)
@@ -62,10 +60,17 @@ const postLockPayment = async (payInfo) => {
   }
 }
 
-const getDealList = async (address, name, pageNumber, pageSize) => {
+const getDealList = async (
+  address,
+  name,
+  orderBy,
+  isAscend,
+  pageNumber,
+  pageSize,
+) => {
   try {
     const res = await axios.get(
-      `${MCS_API}/storage/tasks/deals?page_size=${pageSize}&page_number=${pageNumber}&file_name=${name}&source_id=4&wallet_address=${address}&payload_cid=${cid}`,
+      `${MCS_API}/storage/tasks/deals?page_size=${pageSize}&page_number=${pageNumber}&file_name=${name}&wallet_address=${address}&order_by=${orderBy}&is_ascend=${isAscend}`,
     )
     return res?.data
   } catch (err) {

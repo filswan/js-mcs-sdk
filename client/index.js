@@ -60,12 +60,12 @@ class mcsClient {
    * @param {string} amount - pass amount as string to avoid BN precision errors
    * @returns {Object} payment transaction response
    */
-  makePayment = async (sourceFileUploadId, payloadCid, amount, size) =>
+  makePayment = async (sourceFileUploadId, wCid, amount, size) =>
     await lockToken(
       this.web3,
       this.publicKey,
       sourceFileUploadId,
-      payloadCid,
+      wCid,
       amount,
       size,
     )
@@ -76,8 +76,7 @@ class mcsClient {
    * @param {string} sourceFileUploadId
    * @returns {Object} file status on MCS
    */
-  checkStatus = async (sourceFileUploadId) =>
-    await getFileStatus(sourceFileUploadId)
+  checkStatus = async (dealId) => await getFileStatus(dealId)
 
   /**
    * Mints file as NFT availiable to view on Opensea
@@ -102,10 +101,12 @@ class mcsClient {
   listUploads = async (
     wallet = this.publicKey,
     fileName = '',
+    orderBy = '',
+    isAscend = '',
     pageNumber = 1,
     pageSize = 10,
   ) =>
-    await getDealList(wallet || this.publicKey, fileName, pageNumber, pageSize)
+    await getDealList(wallet, fileName, orderBy, isAscend, pageNumber, pageSize)
 
   /**
    *

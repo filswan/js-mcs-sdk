@@ -19,10 +19,11 @@ async function main() {
   console.log(uploadResponse)
 
   const UPLOAD_ID = uploadResponse[0].data.source_file_upload_id
-  const PAYLOAD_CID = uploadResponse[0].data.w_cid
+  const W_CID = uploadResponse[0].data.w_cid
+  const FILE_SIZE = uploadResponse[0].data.file_size
   const MIN_AMOUNT = '0.5'
 
-  const tx = await client.makePayment(UPLOAD_ID, PAYLOAD_CID, MIN_AMOUNT)
+  const tx = await client.makePayment(UPLOAD_ID, W_CID, MIN_AMOUNT, FILE_SIZE)
   console.log(tx)
 
   const uploads = await client.listUploads(

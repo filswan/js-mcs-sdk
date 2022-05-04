@@ -55,7 +55,7 @@ const lockToken = async (web3, payer, uploadId, wCid, amount, size) => {
 
   const lockResponse = await postLockPayment(lockPaymentObj)
 
-  return lockResponse
+  return { ...lockResponse, data: lockPaymentObj }
 }
 
 module.exports = { lockToken }
