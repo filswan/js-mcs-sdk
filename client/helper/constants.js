@@ -1,3 +1,3 @@
-const MCS_API = 'http://192.168.88.41:8889/api/v1'
+const MCS_API = 'https://mcs-api.filswan.com/api/v1'
 
 module.exports = { MCS_API }

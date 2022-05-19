@@ -103,10 +103,21 @@ class mcsClient {
     fileName = '',
     orderBy = '',
     isAscend = '',
+    status = '',
+    isMinted = '',
     pageNumber = 1,
     pageSize = 10,
   ) =>
-    await getDealList(wallet, fileName, orderBy, isAscend, pageNumber, pageSize)
+    await getDealList(
+      wallet,
+      fileName,
+      orderBy,
+      isAscend,
+      status,
+      isMinted,
+      pageNumber,
+      pageSize,
+    )
 
   /**
    *

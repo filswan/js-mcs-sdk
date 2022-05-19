@@ -65,12 +65,14 @@ const getDealList = async (
   name,
   orderBy,
   isAscend,
+  status,
+  isMinted,
   pageNumber,
   pageSize,
 ) => {
   try {
     const res = await axios.get(
-      `${MCS_API}/storage/tasks/deals?page_size=${pageSize}&page_number=${pageNumber}&file_name=${name}&wallet_address=${address}&order_by=${orderBy}&is_ascend=${isAscend}`,
+      `${MCS_API}/storage/tasks/deals?page_size=${pageSize}&page_number=${pageNumber}&file_name=${name}&wallet_address=${address}&order_by=${orderBy}&is_ascend=${isAscend}&status=${status}&is_minted=${isMinted}`,
     )
     return res?.data
   } catch (err) {
