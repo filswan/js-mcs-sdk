@@ -1,6 +1,5 @@
 require('dotenv').config('./.env')
-const fs = require('fs')
-const { mcsSdk } = require('../sdk/index')
+const { mcsSdk } = require('js-mcs-sdk')
 const mcs = new mcsSdk({
   privateKey: process.env.PRIVATE_KEY,
   rpcUrl: process.env.RPC_URL,
