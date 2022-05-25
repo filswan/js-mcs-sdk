@@ -18,19 +18,14 @@ async function main() {
   const uploadResponse = await client.upload(fileArray)
   console.log(uploadResponse)
 
-  const UPLOAD_ID = uploadResponse[0].data.source_file_upload_id
   const W_CID = uploadResponse[0].data.w_cid
   const FILE_SIZE = uploadResponse[0].data.file_size
   const MIN_AMOUNT = '0.5'
 
-  const tx = await client.makePayment(UPLOAD_ID, W_CID, MIN_AMOUNT, FILE_SIZE)
-  console.log(tx)
+  const tx = await client.makePayment(W_CID, MIN_AMOUNT, FILE_SIZE)
+  console.log('transaction hash: ' + tx.transactionHash)
 
-  const uploads = await client.listUploads(
-    client.publicKey,
-    '',
-    'testFile.json',
-  )
+  const uploads = await client.getUploads(client.publicKey, '', 'testFile.json')
   console.log(uploads.data.source_file_upload)
 }
 

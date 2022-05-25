@@ -7,7 +7,7 @@ const ten = '10000000000000000000'
 const oneHundred = '100000000000000000000'
 const oneThousand = '1000000000000000000000'
 
-const lockToken = async (web3, payer, uploadId, wCid, amount, size) => {
+const lockToken = async (web3, payer, wCid, amount, size) => {
   const params = await getParams()
 
   const usdcAddress = params.USDC_ADDRESS
@@ -48,14 +48,7 @@ const lockToken = async (web3, payer, uploadId, wCid, amount, size) => {
     .lockTokenPayment(lockObj)
     .send(optionsObj)
 
-  const lockPaymentObj = {
-    source_file_upload_id: parseInt(uploadId),
-    tx_hash: tx.transactionHash,
-  }
-
-  const lockResponse = await postLockPayment(lockPaymentObj)
-
-  return { ...lockResponse, data: lockPaymentObj }
+  return tx
 }
 
 module.exports = { lockToken }
