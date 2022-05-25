@@ -6,7 +6,7 @@ const { lockToken } = require('./helper/lockToken')
 const { getFileStatus, getDealList, getDealDetail } = require('./helper/mcsApi')
 const { mint } = require('./helper/mint')
 
-class mcsClient {
+class mcsSdk {
   /**
    * Constructs a client bound to the user and endpoint.
    *
@@ -115,11 +115,11 @@ class mcsClient {
   /**
    *
    * @param {string} sourceFileUploadId
-   * @param {number} [dealId=0] - dealId can be found from listUploads
+   * @param {number} dealId - dealId can be found from listUploads
    * @returns
    */
-  getFileDetails = async (sourceFileUploadId, dealId = 0) =>
+  getFileDetails = async (sourceFileUploadId, dealId) =>
     await getDealDetail(sourceFileUploadId, dealId)
 }
 
-module.exports = { mcsClient }
+module.exports = { mcsSdk }
