@@ -8,12 +8,12 @@ const { mint } = require('./helper/mint')
 
 class mcsSdk {
   /**
-   * Constructs a client bound to the user and endpoint.
+   * Constructs a class bound to the user and endpoint.
    *
    * @example
    * ```js
-   * const { mcsClient } = require('mcs-client')
-   * const client = new mcsClient({
+   * const { mcsSdk } = require('js-mcs-sdk')
+   * const mcs = new mcsSdk({
    *   privateKey: PRIVATE_KEY
    *   rpcURL: 'https://matic-mumbai.chainstacklabs.com'
    * })
