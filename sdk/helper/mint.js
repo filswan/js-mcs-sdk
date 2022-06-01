@@ -2,8 +2,8 @@ const minterABI = require('../abi/Minter.json')
 const { getParams, getPaymentInfo, postMintInfo } = require('./mcsApi')
 const { mcsUpload } = require('./upload')
 
-const mint = async (web3, payer, cid, nftObj) => {
-  const paymentInfo = await getPaymentInfo(cid)
+const mint = async (web3, payer, sourceFileUploadId, nftObj) => {
+  const paymentInfo = await getPaymentInfo(sourceFileUploadId)
   const txHash = paymentInfo.data.tx_hash
 
   let nft = { ...nftObj, tx_hash: txHash }
@@ -17,12 +17,12 @@ const mint = async (web3, payer, cid, nftObj) => {
   const nft_uri = uploadResponse.pop().data.ipfs_url
 
   const params = await getParams()
-  const mintAddress = params.MINT_CONTRACT
+  const mintAddress = params.MINT_CONTRACT_ADDRESS
   const mintContract = new web3.eth.Contract(minterABI, mintAddress)
 
   const optionsObj = {
     from: payer,
-    gas: params.PAY_GAS_LIMIT,
+    gas: params.GAS_LIMIT,
   }
 
   const mintTx = await mintContract.methods
@@ -32,7 +32,7 @@ const mint = async (web3, payer, cid, nftObj) => {
   const tokenId = await mintContract.methods.totalSupply().call()
 
   const mintInfo = {
-    payload_cid: cid,
+    source_file_upload_id: sourceFileUploadId,
     tx_hash: mintTx.transactionHash,
     token_id: tokenId.toString(),
     mint_address: mintAddress,

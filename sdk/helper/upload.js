@@ -40,7 +40,7 @@ const mcsUpload = async (address, files, options) => {
         file.fileName,
         file.file,
         address,
-        options?.duration || 180,
+        options?.duration,
         options?.fileType || 0,
       ).then((res) => {
         return res.data

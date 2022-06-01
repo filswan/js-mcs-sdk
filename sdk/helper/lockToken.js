@@ -1,32 +1,31 @@
 const erc20ABI = require('../abi/ERC20.json')
 const swanPaymentABI = require('../abi/SwanPayment.json')
-const { getParams } = require('./mcsApi')
+const { getParams, postLockPayment } = require('./mcsApi')
 
 const one = '1000000000000000000'
 const ten = '10000000000000000000'
 const oneHundred = '100000000000000000000'
 const oneThousand = '1000000000000000000000'
 
-const lockToken = async (web3, payer, cid, amount) => {
+const lockToken = async (web3, payer, wCid, amount, size) => {
   const params = await getParams()
+
+  const usdcAddress = params.USDC_ADDRESS
+  const recipientAddress = params.PAYMENT_RECIPIENT_ADDRESS
+  const gatewayContractAddress = params.PAYMENT_CONTRACT_ADDRESS
+  const gasLimit = params.GAS_LIMIT
+  const multiplyFactor = params.PAY_MULTIPLY_FACTOR
 
   const optionsObj = {
     from: payer,
-    gas: params.PAY_GAS_LIMIT,
+    gas: gasLimit,
   }
-
-  const usdcAddress = params.USDC_ADDRESS
-  const recipientAddress = params.RECIPIENT
-  const gatewayContractAddress = params.SWAN_PAYMENT_CONTRACT_ADDRESS
 
   const USDCInstance = new web3.eth.Contract(erc20ABI, usdcAddress)
   const approveTx = await USDCInstance.methods
     .approve(
       gatewayContractAddress,
-      web3.utils.toWei(
-        (amount * params.PAY_WITH_MULTIPLY_FACTOR).toString(),
-        'ether',
-      ),
+      web3.utils.toWei((amount * multiplyFactor).toString(), 'ether'),
     )
     .send(optionsObj)
 
@@ -36,15 +35,13 @@ const lockToken = async (web3, payer, cid, amount) => {
   )
 
   const lockObj = {
-    id: cid,
+    id: wCid,
     minPayment: web3.utils.toWei(amount, 'ether'),
-    amount: (
-      web3.utils.toWei(amount, 'ether') * params.PAY_WITH_MULTIPLY_FACTOR
-    ).toString(),
+    amount: (web3.utils.toWei(amount, 'ether') * multiplyFactor).toString(),
     lockTime: 86400 * params.LOCK_TIME,
     recipient: recipientAddress,
-    size: 0,
-    copyLimit: 1,
+    size: size,
+    copyLimit: 5,
   }
 
   const tx = await paymentInstance.methods
