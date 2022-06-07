@@ -10,8 +10,8 @@ console.log(mcs.publicKey)
 async function main() {
   const DEAL_ID = 0
 
-  const mintResponse = await mcs.getFileStatus(DEAL_ID)
-  console.log(mintResponse)
+  const response = await mcs.getFileStatus(DEAL_ID)
+  console.log(response)
 }
 
 main()

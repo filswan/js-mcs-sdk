@@ -35,7 +35,7 @@ You will also need Testnet USDC and MATIC balance to use this SDK. [Swan Faucet 
 
 # MCS API
 
-For more information about the API usage, check out the [MCS API documentation](https://docs.filswan.com/development-resource/mcp-api).
+For more information about the API usage, check out the [MCS API documentation](https://docs.filswan.com/development-resource/mcp-api-1).
 
 # Usage
 

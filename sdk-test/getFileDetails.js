@@ -11,8 +11,8 @@ async function main() {
   const SOURCE_FILE_UPLOAD_ID = 0
   const DEAL_ID = 0
 
-  const mintResponse = await mcs.getFileDetails(SOURCE_FILE_UPLOAD_ID, DEAL_ID)
-  console.log(mintResponse)
+  const response = await mcs.getFileDetails(SOURCE_FILE_UPLOAD_ID, DEAL_ID)
+  console.log(response)
 }
 
 main()

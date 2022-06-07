@@ -15,6 +15,7 @@ async function main() {
     description: '',
     image: IPFS_URL,
     attributes: [],
+    external_url: IPFS_URL,
   }
 
   const mintResponse = await mcs.mintAsset(SOURCE_FILE_UPLOAD_ID, NFT)
