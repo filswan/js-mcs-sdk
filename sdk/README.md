@@ -63,8 +63,9 @@ Example of uploading a single file using the MCS SDK.
 ```js
 require('dotenv').config()
 const { mcsSdk } = require('js-mcs-sdk')
+const fs = require('fs')
 
-// set up mcs-sdk
+// set up js-mcs-sdk
 const mcs = new mcsSdk({
   privateKey: process.env.PRIVATE_KEY,
   rpcUrl: process.env.RPC_URL,
@@ -72,7 +73,7 @@ const mcs = new mcsSdk({
 
 async function main() {
   const testFile = JSON.stringify({ address: mcs.publicKey })
-  const fileArray = [{ fileName: 'testFile.json', file: testFile }]
+  const fileArray = [{ fileName: `${mcs.publicKey}.txt`, file: testFile }]
 
   const uploadResponse = await mcs.upload(fileArray)
   console.log(uploadResponse)
