@@ -29,7 +29,7 @@ const mint = async (web3, payer, sourceFileUploadId, nftObj) => {
     .mintData(payer, nft_uri)
     .send(optionsObj)
 
-  const tokenId = await mintContract.methods.totalSupply().call()
+  const tokenId = mintTx.events.Mint.returnValues.tokenId_
 
   const mintInfo = {
     source_file_upload_id: sourceFileUploadId,
