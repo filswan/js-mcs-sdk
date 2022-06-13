@@ -46,6 +46,7 @@ Instructions for developers working with MCS SDK and API.
 Install the package using npm
 
 ```
+npm init -y
 npm install js-mcs-sdk
 ```
 
