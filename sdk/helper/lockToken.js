@@ -19,6 +19,7 @@ const lockToken = async (web3, payer, wCid, amount, size) => {
   const optionsObj = {
     from: payer,
     gas: gasLimit,
+    gasPrice: await web3.eth.getGasPrice(),
   }
 
   const USDCInstance = new web3.eth.Contract(erc20ABI, usdcAddress)

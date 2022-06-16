@@ -23,6 +23,7 @@ const mint = async (web3, payer, sourceFileUploadId, nftObj) => {
   const optionsObj = {
     from: payer,
     gas: params.GAS_LIMIT,
+    gasPrice: await web3.eth.getGasPrice(),
   }
 
   const mintTx = await mintContract.methods
