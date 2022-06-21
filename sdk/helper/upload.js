@@ -1,9 +1,9 @@
 const axios = require('axios')
 const FormData = require('form-data')
 const { Agent } = require('https')
-const { MCS_API } = require('./constants')
 
 const uploadPromise = (
+  apiUrl,
   fileName,
   file,
   wallet_address,
@@ -16,7 +16,7 @@ const uploadPromise = (
   form.append('wallet_address', wallet_address)
   form.append('file_type', file_type)
 
-  const res = axios.post(`${MCS_API}/storage/ipfs/upload`, form, {
+  const res = axios.post(`${apiUrl}/storage/ipfs/upload`, form, {
     maxContentLength: Infinity,
     maxBodyLength: Infinity,
     maxRedirects: 0,
@@ -29,7 +29,7 @@ const uploadPromise = (
   return res
 }
 
-const mcsUpload = async (address, files, options) => {
+const mcsUpload = async (apiUrl, address, files, options) => {
   const delayIncrement = parseInt(options?.delay) || 1000
   let apiDelay = 0
 
@@ -37,6 +37,7 @@ const mcsUpload = async (address, files, options) => {
     apiDelay += delayIncrement // staggers each api call
     return new Promise((resolve) => setTimeout(resolve, apiDelay)).then(() =>
       uploadPromise(
+        apiUrl,
         file.fileName,
         file.file,
         address,

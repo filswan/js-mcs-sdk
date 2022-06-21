@@ -1,14 +1,14 @@
 const erc20ABI = require('../abi/ERC20.json')
 const swanPaymentABI = require('../abi/SwanPayment.json')
-const { getParams, postLockPayment } = require('./mcsApi')
+const { getParams } = require('./mcsApi')
 
 const one = '1000000000000000000'
 const ten = '10000000000000000000'
 const oneHundred = '100000000000000000000'
 const oneThousand = '1000000000000000000000'
 
-const lockToken = async (web3, payer, wCid, amount, size) => {
-  const params = await getParams()
+const lockToken = async (apiUrl, web3, payer, wCid, amount, size) => {
+  const params = await getParams(apiUrl)
 
   const usdcAddress = params.USDC_ADDRESS
   const recipientAddress = params.PAYMENT_RECIPIENT_ADDRESS

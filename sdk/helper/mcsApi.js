@@ -1,28 +1,27 @@
 const axios = require('axios')
-const { MCS_API } = require('./constants')
 
-const getParams = async () => {
+const getParams = async (apiUrl) => {
   try {
-    const params = await axios.get(`${MCS_API}/common/system/params`)
+    const params = await axios.get(`${apiUrl}/common/system/params`)
     return params.data?.data
   } catch (err) {
     console.log(err)
   }
 }
 
-const getFileStatus = async (dealId) => {
+const getFileStatus = async (apiUrl, dealId) => {
   try {
-    const res = await axios.get(`${MCS_API}/storage/deal/log/${dealId}`)
+    const res = await axios.get(`${apiUrl}/storage/deal/log/${dealId}`)
     return res.data
   } catch (err) {
     console.error(err)
   }
 }
 
-const getDealDetail = async (sourceFileUploadId, dealId) => {
+const getDealDetail = async (apiUrl, sourceFileUploadId, dealId) => {
   try {
     const res = await axios.get(
-      `${MCS_API}/storage/deal/detail/${dealId}?source_file_upload_id=${sourceFileUploadId}`,
+      `${apiUrl}/storage/deal/detail/${dealId}?source_file_upload_id=${sourceFileUploadId}`,
     )
     return res.data
   } catch (err) {
@@ -30,10 +29,10 @@ const getDealDetail = async (sourceFileUploadId, dealId) => {
   }
 }
 
-const getPaymentInfo = async (sourceFileUploadId) => {
+const getPaymentInfo = async (apiUrl, sourceFileUploadId) => {
   try {
     const res = await axios.get(
-      `${MCS_API}/billing/deal/lockpayment/info?source_file_upload_id=${sourceFileUploadId}`,
+      `${apiUrl}/billing/deal/lockpayment/info?source_file_upload_id=${sourceFileUploadId}`,
     )
     return res?.data
   } catch (err) {
@@ -42,18 +41,18 @@ const getPaymentInfo = async (sourceFileUploadId) => {
   }
 }
 
-const postMintInfo = async (mintInfo) => {
+const postMintInfo = async (apiUrl, mintInfo) => {
   try {
-    const res = await axios.post(`${MCS_API}/storage/mint/info`, mintInfo)
+    const res = await axios.post(`${apiUrl}/storage/mint/info`, mintInfo)
     return res?.data
   } catch (err) {
     console.error(err)
   }
 }
 
-const postLockPayment = async (payInfo) => {
+const postLockPayment = async (apiUrl, payInfo) => {
   try {
-    const res = await axios.post(`${MCS_API}/billing/deal/lockpayment`, payInfo)
+    const res = await axios.post(`${apiUrl}/billing/deal/lockpayment`, payInfo)
     return res?.data
   } catch (err) {
     console.error(err)
@@ -61,6 +60,7 @@ const postLockPayment = async (payInfo) => {
 }
 
 const getDealList = async (
+  apiUrl,
   address,
   name,
   orderBy,
@@ -72,7 +72,7 @@ const getDealList = async (
 ) => {
   try {
     const res = await axios.get(
-      `${MCS_API}/storage/tasks/deals?page_size=${pageSize}&page_number=${pageNumber}&file_name=${name}&wallet_address=${address}&order_by=${orderBy}&is_ascend=${isAscend}&status=${status}&is_minted=${isMinted}`,
+      `${apiUrl}/storage/tasks/deals?page_size=${pageSize}&page_number=${pageNumber}&file_name=${name}&wallet_address=${address}&order_by=${orderBy}&is_ascend=${isAscend}&status=${status}&is_minted=${isMinted}`,
     )
     return res?.data
   } catch (err) {
