@@ -3,6 +3,7 @@ const { mcsSdk } = require('js-mcs-sdk')
 const mcs = new mcsSdk({
   privateKey: process.env.PRIVATE_KEY,
   rpcUrl: process.env.RPC_URL,
+  useCalibration: false,
 })
 
 console.log(mcs.publicKey)
@@ -14,6 +15,7 @@ async function main() {
   })
   const fileArray = [{ fileName: 'testFile.json', file: testFile }]
 
+  console.log('uploading...')
   const uploadResponse = await mcs.upload(fileArray)
   console.log(uploadResponse)
 
@@ -21,10 +23,26 @@ async function main() {
   const FILE_SIZE = uploadResponse[0].data.file_size
   const MIN_AMOUNT = '0.5'
 
+  console.log('paying...')
   const tx = await mcs.makePayment(W_CID, MIN_AMOUNT, FILE_SIZE)
   console.log('transaction hash: ' + tx.transactionHash)
 
-  const uploads = await mcs.getUploads(mcs.publicKey, '', 'testFile.json')
+  const SOURCE_FILE_UPLOAD_ID = uploadResponse[0].data.source_file_upload_id
+  const IPFS_URL = uploadResponse[0].data.ipfs_url
+  const NFT = {
+    name: 'NFT_NAME',
+    description: '',
+    image: IPFS_URL,
+    attributes: [],
+    external_url: IPFS_URL,
+  }
+
+  console.log('minting...')
+  const mintResponse = await mcs.mintAsset(SOURCE_FILE_UPLOAD_ID, NFT)
+  console.log(mintResponse)
+
+  console.log('getting uploads...')
+  const uploads = await mcs.getUploads(mcs.publicKey, 'testFile.json')
   console.log(uploads.data.source_file_upload)
 }
 
