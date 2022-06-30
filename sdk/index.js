@@ -3,7 +3,12 @@ const Web3 = require('web3')
 
 const { mcsUpload } = require('./helper/upload')
 const { lockToken } = require('./helper/lockToken')
-const { getFileStatus, getDealList, getDealDetail } = require('./helper/mcsApi')
+const {
+  getFileStatus,
+  getDealList,
+  getDealDetail,
+  getAverageAmount,
+} = require('./helper/mcsApi')
 const { mint } = require('./helper/mint')
 
 class mcsSdk {
@@ -36,6 +41,8 @@ class mcsSdk {
     } else {
       this.apiUrl = 'https://mcs-api.filswan.com/api/v1'
     }
+
+    this.storageApiUrl = 'https://api.filswan.com'
   }
 
   /**
@@ -67,8 +74,30 @@ class mcsSdk {
    * @param {string} amount - pass amount as string to avoid BN precision errors
    * @returns {Object} payment transaction response
    */
-  makePayment = async (wCid, amount, size) =>
-    await lockToken(this.apiUrl, this.web3, this.publicKey, wCid, amount, size)
+  makePayment = async (wCid, amount, size) => {
+    let tx = {}
+    if (amount == '0' || amount == '') {
+      let averageAmount = await getAverageAmount(
+        this.apiUrl,
+        this.storageApiUrl,
+        this.publicKey,
+        size,
+      )
+
+      tx = await lockToken(
+        this.apiUrl,
+        this.web3,
+        this.publicKey,
+        wCid,
+        averageAmount,
+        size,
+      )
+    } else {
+      tx = lockToken(this.apiUrl, this.web3, this.publicKey, wCid, amount, size)
+    }
+
+    return tx
+  }
 
   /**
    * get filecoin status for file

@@ -26,7 +26,7 @@ const lockToken = async (apiUrl, web3, payer, wCid, amount, size) => {
   const approveTx = await USDCInstance.methods
     .approve(
       gatewayContractAddress,
-      web3.utils.toWei((amount * multiplyFactor).toString(), 'ether'),
+      (web3.utils.toWei(amount, 'ether') * multiplyFactor).toString(),
     )
     .send(optionsObj)
 

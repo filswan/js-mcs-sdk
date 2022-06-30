@@ -80,6 +80,48 @@ const getDealList = async (
   }
 }
 
+const sendRequest = async (apiLink) => {
+  try {
+    const response = await axios.get(apiLink)
+    return response.data
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const getAverageAmount = async (
+  apiUrl,
+  storageApiUrl,
+  walletAddress,
+  fileSize,
+  duration = 525,
+) => {
+  let fileSizeInGB = Number(fileSize) / 10 ** 9
+  let storageCostPerUnit = 0
+
+  const storageRes = await sendRequest(
+    `${storageApiUrl}/stats/storage?wallet_address=${walletAddress}`,
+  )
+  let cost = storageRes.data.average_price_per_GB_per_year
+    ? storageRes.data.average_price_per_GB_per_year.split(' ')
+    : []
+  if (cost[0]) storageCostPerUnit = cost[0]
+
+  const bilingRes = await sendRequest(
+    `${apiUrl}/billing/price/filecoin?wallet_address=${walletAddress}`,
+  )
+  let billingPrice = bilingRes.data
+
+  let price =
+    ((fileSizeInGB * duration * storageCostPerUnit * 5) / 365) * billingPrice
+
+  let numberPrice = Number(price).toFixed(9)
+  let averagePrice =
+    numberPrice > 0 ? Number(price * 3).toFixed(9) : '0.000000002'
+
+  return averagePrice
+}
+
 module.exports = {
   getParams,
   getFileStatus,
@@ -88,4 +130,5 @@ module.exports = {
   postMintInfo,
   postLockPayment,
   getDealList,
+  getAverageAmount,
 }
