@@ -63,11 +63,11 @@ Example of uploading a single file using the MCS SDK.
 
 ```js
 require('dotenv').config()
-const { mcsSdk } = require('js-mcs-sdk')
+const { mcsSDK } = require('js-mcs-sdk')
 const fs = require('fs')
 
 // set up js-mcs-sdk
-const mcs = new mcsSdk({
+const mcs = new mcsSDK({
   privateKey: process.env.PRIVATE_KEY,
   rpcUrl: process.env.RPC_URL,
 })

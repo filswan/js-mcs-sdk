@@ -11,14 +11,14 @@ const {
 } = require('./helper/mcsApi')
 const { mint } = require('./helper/mint')
 
-class mcsSdk {
+class mcsSDK {
   /**
    * Constructs a class bound to the user and endpoint.
    *
    * @example
    * ```js
-   * const { mcsSdk } = require('js-mcs-sdk')
-   * const mcs = new mcsSdk({
+   * const { mcsSDK } = require('js-mcs-sdk')
+   * const mcs = new mcsSDK({
    *   privateKey: PRIVATE_KEY
    *   rpcURL: 'https://matic-mumbai.chainstacklabs.com'
    * })
@@ -159,4 +159,4 @@ class mcsSdk {
     await getDealDetail(this.apiUrl, sourceFileUploadId, dealId)
 }
 
-module.exports = { mcsSdk }
+module.exports = { mcsSDK }
