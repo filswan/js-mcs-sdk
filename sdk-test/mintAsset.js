@@ -8,9 +8,8 @@ const mcs = new mcsSDK({
 console.log(mcs.publicKey)
 
 async function main() {
-  const SOURCE_FILE_UPLOAD_ID = 475560
-  const IPFS_URL =
-    'https://calibration-ipfs.filswan.com/ipfs/QmPNDNcbc4b2Apt59pBHxAdDLXEAbosYUG6NisnyZdySXB'
+  const SOURCE_FILE_UPLOAD_ID = 0
+  const IPFS_URL = ''
   const NFT = {
     name: 'NFT_NAME',
     description: '',
@@ -19,7 +18,9 @@ async function main() {
     external_url: IPFS_URL,
   }
 
-  const mintResponse = await mcs.mintAsset(SOURCE_FILE_UPLOAD_ID, NFT)
+  const mintResponse = await mcs.mintAsset(SOURCE_FILE_UPLOAD_ID, NFT, {
+    generateMetadata: true,
+  })
   console.log(mintResponse)
 }
 

@@ -2,20 +2,33 @@ const minterABI = require('../abi/Minter.json')
 const { getParams, getPaymentInfo, postMintInfo } = require('./mcsApi')
 const { mcsUpload } = require('./upload')
 
-const mint = async (apiUrl, web3, payer, sourceFileUploadId, nftObj) => {
-  const paymentInfo = await getPaymentInfo(apiUrl, sourceFileUploadId)
-  const txHash = paymentInfo.data.tx_hash
+const mint = async (
+  apiUrl,
+  web3,
+  payer,
+  sourceFileUploadId,
+  nftObj,
+  generateMetadata,
+) => {
+  let nft_uri = nftObj // if user did not wish to generate metadata
 
-  let nft = { ...nftObj, tx_hash: txHash }
+  if (generateMetadata) {
+    const paymentInfo = await getPaymentInfo(apiUrl, sourceFileUploadId)
+    const txHash = paymentInfo.data.tx_hash
 
-  const uploadResponse = await mcsUpload(
-    apiUrl,
-    payer,
-    [{ fileName: nft.name, file: JSON.stringify(nft) }],
-    { fileType: 1 },
-  )
+    let nft = { ...nftObj, tx_hash: txHash }
 
-  const nft_uri = uploadResponse.pop().data.ipfs_url
+    const uploadResponse = await mcsUpload(
+      apiUrl,
+      payer,
+      [{ fileName: nft.name, file: JSON.stringify(nft) }],
+      { fileType: 1 },
+    )
+
+    nft_uri = uploadResponse.pop().data.ipfs_url
+
+    nft.external_url = nft_uri
+  }
 
   const params = await getParams(apiUrl)
   const mintAddress = params.MINT_CONTRACT_ADDRESS

@@ -114,8 +114,15 @@ class mcsSDK {
    * @param {{name: string, description: string, image: string, tx_hash: string}} nft
    * @returns {Object} mint info reponse object
    */
-  mintAsset = async (sourceFileUploadId, nft) =>
-    await mint(this.apiUrl, this.web3, this.publicKey, sourceFileUploadId, nft)
+  mintAsset = async (sourceFileUploadId, nft, { generateMetadata = false }) =>
+    await mint(
+      this.apiUrl,
+      this.web3,
+      this.publicKey,
+      sourceFileUploadId,
+      nft,
+      generateMetadata,
+    )
 
   /**
    * List the user's uploaded files on MCS

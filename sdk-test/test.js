@@ -1,5 +1,4 @@
 require('dotenv').config('./.env')
-const fs = require('fs')
 const { mcsSDK } = require('js-mcs-sdk')
 const mcs = new mcsSDK({
   privateKey: process.env.PRIVATE_KEY,
@@ -10,12 +9,11 @@ const mcs = new mcsSDK({
 console.log(mcs.publicKey)
 
 async function main() {
-  const FILE_NAME = 'file1.txt'
-  const FILE_PATH = '/Users/yuenricky/Desktop/multiminer-test.txt'
-
-  const fileArray = [
-    { fileName: FILE_NAME, file: fs.createReadStream(FILE_PATH) },
-  ]
+  const testFile = JSON.stringify({
+    address: mcs.publicKey,
+    nonce: 0,
+  })
+  const fileArray = [{ fileName: 'testFile.json', file: testFile }]
 
   console.log('uploading...')
   const uploadResponse = await mcs.upload(fileArray)
