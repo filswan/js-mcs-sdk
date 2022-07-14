@@ -8,6 +8,7 @@ const mcs = new mcsSDK({
 console.log(mcs.publicKey)
 
 async function main() {
+  const GENERATE_METADATA = true
   const SOURCE_FILE_UPLOAD_ID = 0
   const IPFS_URL = ''
   const NFT = {
@@ -18,9 +19,11 @@ async function main() {
     external_url: IPFS_URL,
   }
 
-  const mintResponse = await mcs.mintAsset(SOURCE_FILE_UPLOAD_ID, NFT, {
-    generateMetadata: true,
-  })
+  const mintResponse = await mcs.mintAsset(
+    SOURCE_FILE_UPLOAD_ID,
+    NFT,
+    GENERATE_METADATA,
+  )
   console.log(mintResponse)
 }
 

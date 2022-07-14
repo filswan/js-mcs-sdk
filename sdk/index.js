@@ -114,7 +114,7 @@ class mcsSDK {
    * @param {{name: string, description: string, image: string, tx_hash: string}} nft
    * @returns {Object} mint info reponse object
    */
-  mintAsset = async (sourceFileUploadId, nft, { generateMetadata = true }) =>
+  mintAsset = async (sourceFileUploadId, nft, generateMetadata = true) =>
     await mint(
       this.apiUrl,
       this.web3,
