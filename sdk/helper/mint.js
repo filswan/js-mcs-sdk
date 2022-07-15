@@ -26,8 +26,6 @@ const mint = async (
     )
 
     nft_uri = uploadResponse.pop().data.ipfs_url
-
-    nft.external_url = nft_uri
   }
 
   const params = await getParams(apiUrl)
