@@ -47,7 +47,7 @@ const mint = async (
   const mintInfo = {
     source_file_upload_id: sourceFileUploadId,
     tx_hash: mintTx.transactionHash,
-    token_id: tokenId.toString(),
+    token_id: tokenId,
     mint_address: mintAddress,
   }
 
