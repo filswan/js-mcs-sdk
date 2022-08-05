@@ -36,13 +36,7 @@ class mcsSDK {
       this.setAccount(privateKey)
     }
 
-    if (useCalibration) {
-      this.apiUrl = 'https://calibration-mcs-api.filswan.com/api/v1'
-    } else {
-      this.apiUrl = 'https://mcs-api.filswan.com/api/v1'
-    }
-
-    this.storageApiUrl = 'https://api.filswan.com'
+    this.isCalibration = useCalibration
   }
 
   /**
@@ -65,7 +59,7 @@ class mcsSDK {
    * @returns {Array} Array of upload API responses
    */
   upload = async (files, options) =>
-    await mcsUpload(this.apiUrl, this.publicKey, files, options)
+    await mcsUpload(this.isCalibration, this.publicKey, files, options)
 
   /**
    * Makes payment for unpaid files on MCS. Throws error if file is already paid.
@@ -78,14 +72,13 @@ class mcsSDK {
     let tx = {}
     if (amount == '0' || amount == '') {
       let averageAmount = await getAverageAmount(
-        this.apiUrl,
-        this.storageApiUrl,
+        this.isCalibration,
         this.publicKey,
         size,
       )
 
       tx = await lockToken(
-        this.apiUrl,
+        this.isCalibration,
         this.web3,
         this.publicKey,
         wCid,
@@ -93,7 +86,14 @@ class mcsSDK {
         size,
       )
     } else {
-      tx = lockToken(this.apiUrl, this.web3, this.publicKey, wCid, amount, size)
+      tx = lockToken(
+        this.isCalibration,
+        this.web3,
+        this.publicKey,
+        wCid,
+        amount,
+        size,
+      )
     }
 
     return tx
@@ -105,7 +105,8 @@ class mcsSDK {
    * @param {string} sourceFileUploadId
    * @returns {Object} file status on MCS
    */
-  getFileStatus = async (dealId) => await getFileStatus(this.apiUrl, dealId)
+  getFileStatus = async (dealId) =>
+    await getFileStatus(this.isCalibration, dealId)
 
   /**
    * Mints file as NFT availiable to view on Opensea
@@ -116,7 +117,7 @@ class mcsSDK {
    */
   mintAsset = async (sourceFileUploadId, nft, generateMetadata = true) =>
     await mint(
-      this.apiUrl,
+      this.isCalibration,
       this.web3,
       this.publicKey,
       sourceFileUploadId,
@@ -145,7 +146,7 @@ class mcsSDK {
     pageSize = 10,
   ) =>
     await getDealList(
-      this.apiUrl,
+      this.isCalibration,
       wallet,
       fileName,
       orderBy,
@@ -163,7 +164,7 @@ class mcsSDK {
    * @returns
    */
   getFileDetails = async (sourceFileUploadId, dealId) =>
-    await getDealDetail(this.apiUrl, sourceFileUploadId, dealId)
+    await getDealDetail(this.isCalibration, sourceFileUploadId, dealId)
 }
 
 module.exports = { mcsSDK }

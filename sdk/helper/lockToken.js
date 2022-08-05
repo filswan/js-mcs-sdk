@@ -7,14 +7,21 @@ const ten = '10000000000000000000'
 const oneHundred = '100000000000000000000'
 const oneThousand = '1000000000000000000000'
 
-const lockToken = async (apiUrl, web3, payer, wCid, amount, size) => {
-  const params = await getParams(apiUrl)
+const lockToken = async (isCalibration, web3, payer, wCid, amount, size) => {
+  const params = await getParams(isCalibration)
 
-  const usdcAddress = params.USDC_ADDRESS
-  const recipientAddress = params.PAYMENT_RECIPIENT_ADDRESS
-  const gatewayContractAddress = params.PAYMENT_CONTRACT_ADDRESS
-  const gasLimit = params.GAS_LIMIT
-  const multiplyFactor = params.PAY_MULTIPLY_FACTOR
+  const usdcAddress = isCalibration ? params.usdc_address : params.USDC_ADDRESS
+  const recipientAddress = isCalibration
+    ? params.payment_recipient_address
+    : params.PAYMENT_RECIPIENT_ADDRESS
+  const gatewayContractAddress = isCalibration
+    ? params.payment_contract_address
+    : params.PAYMENT_CONTRACT_ADDRESS
+  const gasLimit = isCalibration ? params.gas_limit : params.GAS_LIMIT
+  const multiplyFactor = isCalibration
+    ? params.pay_multiply_factor
+    : params.PAY_MULTIPLY_FACTOR
+  const lockTime = isCalibration ? params.lock_time : params.LOCK_TIME
 
   const optionsObj = {
     from: payer,
@@ -39,7 +46,7 @@ const lockToken = async (apiUrl, web3, payer, wCid, amount, size) => {
     id: wCid,
     minPayment: web3.utils.toWei(amount, 'ether'),
     amount: (web3.utils.toWei(amount, 'ether') * multiplyFactor).toString(),
-    lockTime: 86400 * params.LOCK_TIME,
+    lockTime: 86400 * lockTime,
     recipient: recipientAddress,
     size: size,
     copyLimit: 5,
