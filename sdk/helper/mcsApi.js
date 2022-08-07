@@ -36,9 +36,6 @@ const uploadPromise = (
 
 const getParams = async (isCalibration) => {
   try {
-    console.log(
-      `${isCalibration ? CALIBRATION_MCS_API : MCS_API}/common/system/params`,
-    )
     const params = await axios.get(
       `${isCalibration ? CALIBRATION_MCS_API : MCS_API}/common/system/params`,
     )
