@@ -49,8 +49,8 @@ const getFileStatus = async (isCalibration, dealId) => {
   try {
     const res = await axios.get(
       `${
-        isCalibration ? 'calibration-' : ''
-      }${MCS_API}/storage/deal/log/${dealId}`,
+        isCalibration ? CALIBRATION_MCS_API : MCS_API
+      }/storage/deal/log/${dealId}`,
     )
     return res.data
   } catch (err) {
@@ -62,8 +62,8 @@ const getDealDetail = async (isCalibration, sourceFileUploadId, dealId) => {
   try {
     const res = await axios.get(
       `${
-        isCalibration ? 'calibration-' : ''
-      }${MCS_API}/storage/deal/detail/${dealId}?source_file_upload_id=${sourceFileUploadId}`,
+        isCalibration ? CALIBRATION_MCS_API : MCS_API
+      }/storage/deal/detail/${dealId}?source_file_upload_id=${sourceFileUploadId}`,
     )
     return res.data
   } catch (err) {
@@ -75,8 +75,8 @@ const getPaymentInfo = async (isCalibration, sourceFileUploadId) => {
   try {
     const res = await axios.get(
       `${
-        isCalibration ? 'calibration-' : ''
-      }${MCS_API}/billing/deal/lockpayment/info?source_file_upload_id=${sourceFileUploadId}`,
+        isCalibration ? CALIBRATION_MCS_API : MCS_API
+      }/billing/deal/lockpayment/info?source_file_upload_id=${sourceFileUploadId}`,
     )
     return res?.data
   } catch (err) {
@@ -101,8 +101,8 @@ const postLockPayment = async (isCalibration, payInfo) => {
   try {
     const res = await axios.post(
       `${
-        isCalibration ? 'calibration-' : ''
-      }${MCS_API}/billing/deal/lockpayment`,
+        isCalibration ? CALIBRATION_MCS_API : MCS_API
+      }/billing/deal/lockpayment`,
       payInfo,
     )
     return res?.data
@@ -125,8 +125,8 @@ const getDealList = async (
   try {
     const res = await axios.get(
       `${
-        isCalibration ? 'calibration-' : ''
-      }${MCS_API}/storage/tasks/deals?page_size=${pageSize}&page_number=${pageNumber}&file_name=${name}&wallet_address=${address}&order_by=${orderBy}&is_ascend=${isAscend}&status=${status}&is_minted=${isMinted}`,
+        isCalibration ? CALIBRATION_MCS_API : MCS_API
+      }/storage/tasks/deals?page_size=${pageSize}&page_number=${pageNumber}&file_name=${name}&wallet_address=${address}&order_by=${orderBy}&is_ascend=${isAscend}&status=${status}&is_minted=${isMinted}`,
     )
     return res?.data
   } catch (err) {
@@ -170,8 +170,8 @@ const getAverageAmount = async (
   } else {
     const bilingRes = await sendRequest(
       `${
-        isCalibration ? 'calibration-' : ''
-      }${MCS_API}/billing/price/filecoin?wallet_address=${walletAddress}`,
+        isCalibration ? CALIBRATION_MCS_API : MCS_API
+      }/billing/price/filecoin?wallet_address=${walletAddress}`,
     )
     billingPrice = bilingRes.data
   }
