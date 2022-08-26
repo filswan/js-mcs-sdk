@@ -1,10 +1,9 @@
 const axios = require('axios')
 const FormData = require('form-data')
 const { Agent } = require('https')
-const { MCS_API, CALIBRATION_MCS_API, STORAGE_API } = require('./constants')
+const { MCS_API, STORAGE_API } = require('./constants')
 
 const uploadPromise = (
-  isCalibration,
   fileName,
   file,
   wallet_address,
@@ -17,40 +16,41 @@ const uploadPromise = (
   form.append('wallet_address', wallet_address)
   form.append('file_type', file_type)
 
-  const res = axios.post(
-    `${isCalibration ? CALIBRATION_MCS_API : MCS_API}/storage/ipfs/upload`,
-    form,
-    {
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
-      maxRedirects: 0,
-      agent: new Agent({ rejectUnauthorized: false }),
-      headers: {
-        ...form.getHeaders(),
-      },
+  const res = axios.post(`${MCS_API}/storage/ipfs/upload`, form, {
+    maxContentLength: Infinity,
+    maxBodyLength: Infinity,
+    maxRedirects: 0,
+    agent: new Agent({ rejectUnauthorized: false }),
+    headers: {
+      ...form.getHeaders(),
     },
-  )
+  })
 
   return res
 }
 
-const getParams = async (isCalibration) => {
+const getParams = async () => {
   try {
-    const params = await axios.get(
-      `${isCalibration ? CALIBRATION_MCS_API : MCS_API}/common/system/params`,
-    )
+    const params = await axios.get(`${MCS_API}/common/system/params`)
     return params.data?.data
   } catch (err) {
     console.log(err)
   }
 }
 
-const getFileStatus = async (isCalibration, dealId) => {
+const getFileStatus = async (dealId) => {
+  try {
+    const res = await axios.get(`${MCS_API}/storage/deal/log/${dealId}`)
+    return res.data
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const getDealDetail = async (sourceFileUploadId, dealId) => {
   try {
     const res = await axios.get(
-      `${
-        isCalibration ? CALIBRATION_MCS_API : MCS_API
-      }/storage/deal/log/${dealId}`,
+      `${MCS_API}/storage/deal/detail/${dealId}?source_file_upload_id=${sourceFileUploadId}`,
     )
     return res.data
   } catch (err) {
@@ -58,25 +58,10 @@ const getFileStatus = async (isCalibration, dealId) => {
   }
 }
 
-const getDealDetail = async (isCalibration, sourceFileUploadId, dealId) => {
+const getPaymentInfo = async (sourceFileUploadId) => {
   try {
     const res = await axios.get(
-      `${
-        isCalibration ? CALIBRATION_MCS_API : MCS_API
-      }/storage/deal/detail/${dealId}?source_file_upload_id=${sourceFileUploadId}`,
-    )
-    return res.data
-  } catch (err) {
-    console.error(err)
-  }
-}
-
-const getPaymentInfo = async (isCalibration, sourceFileUploadId) => {
-  try {
-    const res = await axios.get(
-      `${
-        isCalibration ? CALIBRATION_MCS_API : MCS_API
-      }/billing/deal/lockpayment/info?source_file_upload_id=${sourceFileUploadId}`,
+      `${MCS_API}/billing/deal/lockpayment/info?source_file_upload_id=${sourceFileUploadId}`,
     )
     return res?.data
   } catch (err) {
@@ -85,12 +70,10 @@ const getPaymentInfo = async (isCalibration, sourceFileUploadId) => {
   }
 }
 
-const getFilePaymentStatus = async (isCalibration, sourceFileUploadId) => {
+const getFilePaymentStatus = async (sourceFileUploadId) => {
   try {
     const res = await axios.get(
-      `${
-        isCalibration ? CALIBRATION_MCS_API : MCS_API
-      }/storage/source_file_upload/${sourceFileUploadId}`,
+      `${MCS_API}/storage/source_file_upload/${sourceFileUploadId}`,
     )
     return res?.data
   } catch (err) {
@@ -99,26 +82,18 @@ const getFilePaymentStatus = async (isCalibration, sourceFileUploadId) => {
   }
 }
 
-const postMintInfo = async (isCalibration, mintInfo) => {
+const postMintInfo = async (mintInfo) => {
   try {
-    const res = await axios.post(
-      `${isCalibration ? CALIBRATION_MCS_API : MCS_API}/storage/mint/info`,
-      mintInfo,
-    )
+    const res = await axios.post(`${MCS_API}/storage/mint/info`, mintInfo)
     return res?.data
   } catch (err) {
     console.error(err)
   }
 }
 
-const postLockPayment = async (isCalibration, payInfo) => {
+const postLockPayment = async (payInfo) => {
   try {
-    const res = await axios.post(
-      `${
-        isCalibration ? CALIBRATION_MCS_API : MCS_API
-      }/billing/deal/lockpayment`,
-      payInfo,
-    )
+    const res = await axios.post(`${MCS_API}/billing/deal/lockpayment`, payInfo)
     return res?.data
   } catch (err) {
     console.error(err)
@@ -126,7 +101,6 @@ const postLockPayment = async (isCalibration, payInfo) => {
 }
 
 const getDealList = async (
-  isCalibration,
   address,
   name,
   orderBy,
@@ -138,9 +112,7 @@ const getDealList = async (
 ) => {
   try {
     const res = await axios.get(
-      `${
-        isCalibration ? CALIBRATION_MCS_API : MCS_API
-      }/storage/tasks/deals?page_size=${pageSize}&page_number=${pageNumber}&file_name=${name}&wallet_address=${address}&order_by=${orderBy}&is_ascend=${isAscend}&status=${status}&is_minted=${isMinted}`,
+      `${MCS_API}/storage/tasks/deals?page_size=${pageSize}&page_number=${pageNumber}&file_name=${name}&wallet_address=${address}&order_by=${orderBy}&is_ascend=${isAscend}&status=${status}&is_minted=${isMinted}`,
     )
     return res?.data
   } catch (err) {
@@ -157,12 +129,7 @@ const sendRequest = async (apiLink) => {
   }
 }
 
-const getAverageAmount = async (
-  isCalibration,
-  walletAddress,
-  fileSize,
-  duration = 525,
-) => {
+const getAverageAmount = async (walletAddress, fileSize, duration = 525) => {
   let fileSizeInGB = Number(fileSize) / 10 ** 9
   let storageCostPerUnit = 0
 
@@ -175,20 +142,8 @@ const getAverageAmount = async (
     : []
   if (cost[0]) storageCostPerUnit = cost[0]
 
-  // get FIL/USDC
-  let billingPrice = 1
-
-  if (isCalibration) {
-    const params = await getParams(isCalibration)
-    billingPrice = params.filecoin_price
-  } else {
-    const bilingRes = await sendRequest(
-      `${
-        isCalibration ? CALIBRATION_MCS_API : MCS_API
-      }/billing/price/filecoin?wallet_address=${walletAddress}`,
-    )
-    billingPrice = bilingRes.data
-  }
+  const params = await getParams()
+  billingPrice = params.filecoin_price
 
   let price =
     ((fileSizeInGB * duration * storageCostPerUnit * 5) / 365) * billingPrice

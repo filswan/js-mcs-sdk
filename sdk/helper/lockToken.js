@@ -1,50 +1,30 @@
 const erc20ABI = require('../abi/ERC20.json')
 const swanPaymentABI = require('../abi/SwanPayment.json')
-const { getParams, getFilePaymentStatus, getPaymentInfo } = require('./mcsApi')
+const { getParams, getFilePaymentStatus } = require('./mcsApi')
 
 const one = '1000000000000000000'
 const ten = '10000000000000000000'
 const oneHundred = '100000000000000000000'
 const oneThousand = '1000000000000000000000'
 
-const lockToken = async (
-  isCalibration,
-  web3,
-  payer,
-  sourceFileUploadId,
-  amount,
-  size,
-) => {
+const lockToken = async (web3, payer, sourceFileUploadId, amount, size) => {
   // check if file is free/paid for
-  if (isCalibration) {
-    const filePaymentStatus = await getFilePaymentStatus(
-      isCalibration,
-      sourceFileUploadId,
-    )
-    const paymentStatus = filePaymentStatus.data.source_file_upload
+  const filePaymentStatus = await getFilePaymentStatus(sourceFileUploadId)
+  const paymentStatus = filePaymentStatus.data.source_file_upload
 
-    if (paymentStatus?.is_free || paymentStatus?.status != 'Pending') {
-      throw new Error('This file is already paid for.')
-    }
+  if (paymentStatus?.is_free || paymentStatus?.status != 'Pending') {
+    throw new Error('This file is already paid for.')
   }
+  const wCid = paymentStatus.w_cid
 
-  const paymentInfo = await getPaymentInfo(isCalibration, sourceFileUploadId)
-  const wCid = paymentInfo.data.w_cid
+  const params = await getParams()
 
-  const params = await getParams(isCalibration)
-
-  const usdcAddress = isCalibration ? params.usdc_address : params.USDC_ADDRESS
-  const recipientAddress = isCalibration
-    ? params.payment_recipient_address
-    : params.PAYMENT_RECIPIENT_ADDRESS
-  const gatewayContractAddress = isCalibration
-    ? params.payment_contract_address
-    : params.PAYMENT_CONTRACT_ADDRESS
-  const gasLimit = isCalibration ? params.gas_limit : params.GAS_LIMIT
-  const multiplyFactor = isCalibration
-    ? params.pay_multiply_factor
-    : params.PAY_MULTIPLY_FACTOR
-  const lockTime = isCalibration ? params.lock_time : params.LOCK_TIME
+  const usdcAddress = params.usdc_address
+  const recipientAddress = params.payment_recipient_address
+  const gatewayContractAddress = params.payment_contract_address
+  const gasLimit = params.gas_limit
+  const multiplyFactor = params.pay_multiply_factor
+  const lockTime = params.lock_time
 
   const optionsObj = {
     from: payer,
