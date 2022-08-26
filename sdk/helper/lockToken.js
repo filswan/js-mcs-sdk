@@ -1,13 +1,36 @@
 const erc20ABI = require('../abi/ERC20.json')
 const swanPaymentABI = require('../abi/SwanPayment.json')
-const { getParams } = require('./mcsApi')
+const { getParams, getFilePaymentStatus, getPaymentInfo } = require('./mcsApi')
 
 const one = '1000000000000000000'
 const ten = '10000000000000000000'
 const oneHundred = '100000000000000000000'
 const oneThousand = '1000000000000000000000'
 
-const lockToken = async (isCalibration, web3, payer, wCid, amount, size) => {
+const lockToken = async (
+  isCalibration,
+  web3,
+  payer,
+  sourceFileUploadId,
+  amount,
+  size,
+) => {
+  // check if file is free/paid for
+  if (isCalibration) {
+    const filePaymentStatus = await getFilePaymentStatus(
+      isCalibration,
+      sourceFileUploadId,
+    )
+    const paymentStatus = filePaymentStatus.data.source_file_upload
+
+    if (paymentStatus?.is_free || paymentStatus?.status != 'Pending') {
+      throw new Error('This file is already paid for.')
+    }
+  }
+
+  const paymentInfo = await getPaymentInfo(isCalibration, sourceFileUploadId)
+  const wCid = paymentInfo.data.w_cid
+
   const params = await getParams(isCalibration)
 
   const usdcAddress = isCalibration ? params.usdc_address : params.USDC_ADDRESS

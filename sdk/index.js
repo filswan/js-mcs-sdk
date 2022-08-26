@@ -68,7 +68,7 @@ class mcsSDK {
    * @param {string} amount - pass amount as string to avoid BN precision errors
    * @returns {Object} payment transaction response
    */
-  makePayment = async (wCid, amount, size) => {
+  makePayment = async (sourceFileUploadId, amount, size) => {
     let tx = {}
     if (amount == '0' || amount == '') {
       let averageAmount = await getAverageAmount(
@@ -81,7 +81,7 @@ class mcsSDK {
         this.isCalibration,
         this.web3,
         this.publicKey,
-        wCid,
+        sourceFileUploadId,
         averageAmount,
         size,
       )
@@ -90,7 +90,7 @@ class mcsSDK {
         this.isCalibration,
         this.web3,
         this.publicKey,
-        wCid,
+        sourceFileUploadId,
         amount,
         size,
       )

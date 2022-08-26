@@ -14,7 +14,7 @@ const mint = async (
 
   if (generateMetadata) {
     const paymentInfo = await getPaymentInfo(isCalibration, sourceFileUploadId)
-    const txHash = paymentInfo.data.tx_hash
+    const txHash = paymentInfo?.data.tx_hash || ''
 
     let nft = { ...nftObj, tx_hash: txHash }
 

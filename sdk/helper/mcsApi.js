@@ -85,6 +85,20 @@ const getPaymentInfo = async (isCalibration, sourceFileUploadId) => {
   }
 }
 
+const getFilePaymentStatus = async (isCalibration, sourceFileUploadId) => {
+  try {
+    const res = await axios.get(
+      `${
+        isCalibration ? CALIBRATION_MCS_API : MCS_API
+      }/storage/source_file_upload/${sourceFileUploadId}`,
+    )
+    return res?.data
+  } catch (err) {
+    // Handle Error Here
+    console.error(err)
+  }
+}
+
 const postMintInfo = async (isCalibration, mintInfo) => {
   try {
     const res = await axios.post(
@@ -192,6 +206,7 @@ module.exports = {
   getFileStatus,
   getDealDetail,
   getPaymentInfo,
+  getFilePaymentStatus,
   postMintInfo,
   postLockPayment,
   getDealList,
