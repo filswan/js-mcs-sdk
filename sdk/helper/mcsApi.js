@@ -194,10 +194,7 @@ const getAverageAmount = async (
     ((fileSizeInGB * duration * storageCostPerUnit * 5) / 365) * billingPrice
 
   let numberPrice = Number(price).toFixed(9)
-  let averagePrice =
-    numberPrice > 0 ? Number(price * 3).toFixed(9) : '0.000000002'
-
-  return averagePrice
+  return numberPrice > 0 ? numberPrice : '0.000000002'
 }
 
 module.exports = {
