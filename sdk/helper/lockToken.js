@@ -7,9 +7,19 @@ const ten = '10000000000000000000'
 const oneHundred = '100000000000000000000'
 const oneThousand = '1000000000000000000000'
 
-const lockToken = async (web3, payer, sourceFileUploadId, amount, size) => {
+const lockToken = async (
+  mcsApi,
+  web3,
+  payer,
+  sourceFileUploadId,
+  amount,
+  size,
+) => {
   // check if file is free/paid for
-  const filePaymentStatus = await getFilePaymentStatus(sourceFileUploadId)
+  const filePaymentStatus = await getFilePaymentStatus(
+    mcsApi,
+    sourceFileUploadId,
+  )
   const paymentStatus = filePaymentStatus.data.source_file_upload
 
   if (paymentStatus?.is_free || paymentStatus?.status != 'Pending') {
@@ -17,7 +27,7 @@ const lockToken = async (web3, payer, sourceFileUploadId, amount, size) => {
   }
   const wCid = paymentStatus.w_cid
 
-  const params = await getParams()
+  const params = await getParams(mcsApi)
 
   const usdcAddress = params.usdc_address
   const recipientAddress = params.payment_recipient_address

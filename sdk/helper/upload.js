@@ -1,6 +1,6 @@
 const { uploadPromise } = require('./mcsApi')
 
-const mcsUpload = async (address, files, options) => {
+const mcsUpload = async (mcsApi, address, files, options) => {
   const delayIncrement = parseInt(options?.delay) || 1000
   let apiDelay = 0
 
@@ -8,6 +8,7 @@ const mcsUpload = async (address, files, options) => {
     apiDelay += delayIncrement // staggers each api call
     return new Promise((resolve) => setTimeout(resolve, apiDelay)).then(() =>
       uploadPromise(
+        mcsApi,
         file.fileName,
         file.file,
         address,

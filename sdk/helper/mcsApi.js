@@ -1,9 +1,9 @@
 const axios = require('axios')
 const FormData = require('form-data')
 const { Agent } = require('https')
-const { MCS_API, STORAGE_API } = require('./constants')
 
 const uploadPromise = (
+  mcsApi,
   fileName,
   file,
   wallet_address,
@@ -16,7 +16,7 @@ const uploadPromise = (
   form.append('wallet_address', wallet_address)
   form.append('file_type', file_type)
 
-  const res = axios.post(`${MCS_API}/storage/ipfs/upload`, form, {
+  const res = axios.post(`${mcsApi}/storage/ipfs/upload`, form, {
     maxContentLength: Infinity,
     maxBodyLength: Infinity,
     maxRedirects: 0,
@@ -29,28 +29,28 @@ const uploadPromise = (
   return res
 }
 
-const getParams = async () => {
+const getParams = async (mcsApi) => {
   try {
-    const params = await axios.get(`${MCS_API}/common/system/params`)
+    const params = await axios.get(`${mcsApi}/common/system/params`)
     return params.data?.data
   } catch (err) {
     console.log(err)
   }
 }
 
-const getFileStatus = async (dealId) => {
+const getFileStatus = async (mcsApi, dealId) => {
   try {
-    const res = await axios.get(`${MCS_API}/storage/deal/log/${dealId}`)
+    const res = await axios.get(`${mcsApi}/storage/deal/log/${dealId}`)
     return res.data
   } catch (err) {
     console.error(err)
   }
 }
 
-const getDealDetail = async (sourceFileUploadId, dealId) => {
+const getDealDetail = async (mcsApi, sourceFileUploadId, dealId) => {
   try {
     const res = await axios.get(
-      `${MCS_API}/storage/deal/detail/${dealId}?source_file_upload_id=${sourceFileUploadId}`,
+      `${mcsApi}/storage/deal/detail/${dealId}?source_file_upload_id=${sourceFileUploadId}`,
     )
     return res.data
   } catch (err) {
@@ -58,10 +58,10 @@ const getDealDetail = async (sourceFileUploadId, dealId) => {
   }
 }
 
-const getPaymentInfo = async (sourceFileUploadId) => {
+const getPaymentInfo = async (mcsApi, sourceFileUploadId) => {
   try {
     const res = await axios.get(
-      `${MCS_API}/billing/deal/lockpayment/info?source_file_upload_id=${sourceFileUploadId}`,
+      `${mcsApi}/billing/deal/lockpayment/info?source_file_upload_id=${sourceFileUploadId}`,
     )
     return res?.data
   } catch (err) {
@@ -70,10 +70,10 @@ const getPaymentInfo = async (sourceFileUploadId) => {
   }
 }
 
-const getFilePaymentStatus = async (sourceFileUploadId) => {
+const getFilePaymentStatus = async (mcsApi, sourceFileUploadId) => {
   try {
     const res = await axios.get(
-      `${MCS_API}/storage/source_file_upload/${sourceFileUploadId}`,
+      `${mcsApi}/storage/source_file_upload/${sourceFileUploadId}`,
     )
     return res?.data
   } catch (err) {
@@ -82,18 +82,18 @@ const getFilePaymentStatus = async (sourceFileUploadId) => {
   }
 }
 
-const postMintInfo = async (mintInfo) => {
+const postMintInfo = async (mcsApi, mintInfo) => {
   try {
-    const res = await axios.post(`${MCS_API}/storage/mint/info`, mintInfo)
+    const res = await axios.post(`${mcsApi}/storage/mint/info`, mintInfo)
     return res?.data
   } catch (err) {
     console.error(err)
   }
 }
 
-const postLockPayment = async (payInfo) => {
+const postLockPayment = async (mcsApi, payInfo) => {
   try {
-    const res = await axios.post(`${MCS_API}/billing/deal/lockpayment`, payInfo)
+    const res = await axios.post(`${mcsApi}/billing/deal/lockpayment`, payInfo)
     return res?.data
   } catch (err) {
     console.error(err)
@@ -101,6 +101,7 @@ const postLockPayment = async (payInfo) => {
 }
 
 const getDealList = async (
+  mcsApi,
   address,
   name,
   orderBy,
@@ -112,7 +113,7 @@ const getDealList = async (
 ) => {
   try {
     const res = await axios.get(
-      `${MCS_API}/storage/tasks/deals?page_size=${pageSize}&page_number=${pageNumber}&file_name=${name}&wallet_address=${address}&order_by=${orderBy}&is_ascend=${isAscend}&status=${status}&is_minted=${isMinted}`,
+      `${mcsApi}/storage/tasks/deals?page_size=${pageSize}&page_number=${pageNumber}&file_name=${name}&wallet_address=${address}&order_by=${orderBy}&is_ascend=${isAscend}&status=${status}&is_minted=${isMinted}`,
     )
     return res?.data
   } catch (err) {
@@ -129,20 +130,26 @@ const sendRequest = async (apiLink) => {
   }
 }
 
-const getAverageAmount = async (walletAddress, fileSize, duration = 525) => {
+const getAverageAmount = async (
+  mcsApi,
+  storageApi,
+  walletAddress,
+  fileSize,
+  duration = 525,
+) => {
   let fileSizeInGB = Number(fileSize) / 10 ** 9
   let storageCostPerUnit = 0
 
   // get price in FIL/GiB/year
   const storageRes = await sendRequest(
-    `${STORAGE_API}/stats/storage?wallet_address=${walletAddress}`,
+    `${storageApi}/stats/storage?wallet_address=${walletAddress}`,
   )
   let cost = storageRes.data.average_price_per_GB_per_year
     ? storageRes.data.average_price_per_GB_per_year.split(' ')
     : []
   if (cost[0]) storageCostPerUnit = cost[0]
 
-  const params = await getParams()
+  const params = await getParams(mcsApi)
   billingPrice = params.filecoin_price
 
   let price =

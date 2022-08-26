@@ -11,6 +11,13 @@ const {
 } = require('./helper/mcsApi')
 const { mint } = require('./helper/mint')
 
+const {
+  MCS_API,
+  STORAGE_API,
+  MCS_BSC_API,
+  STORAGE_BSC_API,
+} = require('./helper/constants')
+
 class mcsSDK {
   /**
    * Constructs a class bound to the user and endpoint.
@@ -28,12 +35,15 @@ class mcsSDK {
   constructor({
     privateKey,
     rpcUrl = 'https://matic-mumbai.chainstacklabs.com',
+    network = 'mumbai',
   }) {
     this.version = packageJson.version
     this.web3 = new Web3(rpcUrl)
     if (privateKey) {
       this.setAccount(privateKey)
     }
+
+    this.setApi(network)
   }
 
   /**
@@ -48,6 +58,16 @@ class mcsSDK {
     ).address
   }
 
+  setApi = (network) => {
+    if (network == 'tbnc') {
+      this.mcsApi = MCS_BSC_API
+      this.storageApi = STORAGE_BSC_API
+    } else {
+      this.mcsApi = MCS_API
+      this.storageApi = STORAGE_API
+    }
+  }
+
   /**
    * Uploads file(s) using MCS upload API
    *
@@ -56,7 +76,7 @@ class mcsSDK {
    * @returns {Array} Array of upload API responses
    */
   upload = async (files, options) =>
-    await mcsUpload(this.publicKey, files, options)
+    await mcsUpload(this.mcsApi, this.publicKey, files, options)
 
   /**
    * Makes payment for unpaid files on MCS. Throws error if file is already paid.
@@ -68,10 +88,16 @@ class mcsSDK {
   makePayment = async (sourceFileUploadId, amount, size) => {
     let paymentAmount = amount
     if (paymentAmount == '0' || paymentAmount == '') {
-      paymentAmount = await getAverageAmount(this.publicKey, size)
+      paymentAmount = await getAverageAmount(
+        this.mcsApi,
+        this.storageApi,
+        this.publicKey,
+        size,
+      )
     }
 
     let tx = await lockToken(
+      this.mcsApi,
       this.web3,
       this.publicKey,
       sourceFileUploadId,
@@ -99,6 +125,7 @@ class mcsSDK {
    */
   mintAsset = async (sourceFileUploadId, nft, generateMetadata = true) =>
     await mint(
+      this.mcsApi,
       this.web3,
       this.publicKey,
       sourceFileUploadId,
@@ -127,6 +154,7 @@ class mcsSDK {
     pageSize = 10,
   ) =>
     await getDealList(
+      this.mcsApi,
       wallet,
       fileName,
       orderBy,
@@ -144,7 +172,7 @@ class mcsSDK {
    * @returns
    */
   getFileDetails = async (sourceFileUploadId, dealId) =>
-    await getDealDetail(sourceFileUploadId, dealId)
+    await getDealDetail(this.mcsApi, sourceFileUploadId, dealId)
 }
 
 module.exports = { mcsSDK }
