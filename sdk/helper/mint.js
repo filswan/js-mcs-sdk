@@ -3,7 +3,7 @@ const { getParams, getPaymentInfo, postMintInfo } = require('./mcsApi')
 const { mcsUpload } = require('./upload')
 
 const mint = async (
-  isCalibration,
+  mcsApi,
   web3,
   payer,
   sourceFileUploadId,
@@ -13,13 +13,13 @@ const mint = async (
   let nft_uri = nftObj // if user did not wish to generate metadata
 
   if (generateMetadata) {
-    const paymentInfo = await getPaymentInfo(isCalibration, sourceFileUploadId)
+    const paymentInfo = await getPaymentInfo(mcsApi, sourceFileUploadId)
     const txHash = paymentInfo?.data.tx_hash || ''
 
     let nft = { ...nftObj, tx_hash: txHash }
 
     const uploadResponse = await mcsUpload(
-      isCalibration,
+      mcsApi,
       payer,
       [{ fileName: nft.name, file: JSON.stringify(nft) }],
       { fileType: 1 },
@@ -28,15 +28,13 @@ const mint = async (
     nft_uri = uploadResponse.pop().data.ipfs_url
   }
 
-  const params = await getParams(isCalibration)
-  const mintAddress = isCalibration
-    ? params.mint_contract_address
-    : params.MINT_CONTRACT_ADDRESS
+  const params = await getParams(mcsApi)
+  const mintAddress = params.MINT_CONTRACT_ADDRESS
   const mintContract = new web3.eth.Contract(minterABI, mintAddress)
 
   const optionsObj = {
     from: payer,
-    gas: isCalibration ? params.gas_limit : params.GAS_LIMIT,
+    gas: params.GAS_LIMIT,
     gasPrice: await web3.eth.getGasPrice(),
   }
 
@@ -53,7 +51,7 @@ const mint = async (
     mint_address: mintAddress,
   }
 
-  const mintInfoResponse = await postMintInfo(isCalibration, mintInfo)
+  const mintInfoResponse = await postMintInfo(mcsApi, mintInfo)
 
   return mintInfoResponse
 }

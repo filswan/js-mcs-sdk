@@ -11,6 +11,13 @@ const {
 } = require('./helper/mcsApi')
 const { mint } = require('./helper/mint')
 
+const {
+  MCS_API,
+  STORAGE_API,
+  MCS_BSC_API,
+  STORAGE_BSC_API,
+} = require('./helper/constants')
+
 class mcsSDK {
   /**
    * Constructs a class bound to the user and endpoint.
@@ -28,7 +35,7 @@ class mcsSDK {
   constructor({
     privateKey,
     rpcUrl = 'https://matic-mumbai.chainstacklabs.com',
-    useCalibration = false,
+    network = 'mumbai',
   }) {
     this.version = packageJson.version
     this.web3 = new Web3(rpcUrl)
@@ -36,7 +43,7 @@ class mcsSDK {
       this.setAccount(privateKey)
     }
 
-    this.isCalibration = useCalibration
+    this.setApi(network)
   }
 
   /**
@@ -51,6 +58,16 @@ class mcsSDK {
     ).address
   }
 
+  setApi = (network) => {
+    if (network == 'tbnc') {
+      this.mcsApi = MCS_BSC_API
+      this.storageApi = STORAGE_BSC_API
+    } else {
+      this.mcsApi = MCS_API
+      this.storageApi = STORAGE_API
+    }
+  }
+
   /**
    * Uploads file(s) using MCS upload API
    *
@@ -59,7 +76,7 @@ class mcsSDK {
    * @returns {Array} Array of upload API responses
    */
   upload = async (files, options) =>
-    await mcsUpload(this.isCalibration, this.publicKey, files, options)
+    await mcsUpload(this.mcsApi, this.publicKey, files, options)
 
   /**
    * Makes payment for unpaid files on MCS. Throws error if file is already paid.
@@ -69,32 +86,24 @@ class mcsSDK {
    * @returns {Object} payment transaction response
    */
   makePayment = async (sourceFileUploadId, amount, size) => {
-    let tx = {}
-    if (amount == '0' || amount == '') {
-      let averageAmount = await getAverageAmount(
-        this.isCalibration,
+    let paymentAmount = amount
+    if (paymentAmount == '0' || paymentAmount == '') {
+      paymentAmount = await getAverageAmount(
+        this.mcsApi,
+        this.storageApi,
         this.publicKey,
-        size,
-      )
-
-      tx = await lockToken(
-        this.isCalibration,
-        this.web3,
-        this.publicKey,
-        sourceFileUploadId,
-        averageAmount,
-        size,
-      )
-    } else {
-      tx = lockToken(
-        this.isCalibration,
-        this.web3,
-        this.publicKey,
-        sourceFileUploadId,
-        amount,
         size,
       )
     }
+
+    let tx = await lockToken(
+      this.mcsApi,
+      this.web3,
+      this.publicKey,
+      sourceFileUploadId,
+      paymentAmount,
+      size,
+    )
 
     return tx
   }
@@ -105,8 +114,7 @@ class mcsSDK {
    * @param {string} sourceFileUploadId
    * @returns {Object} file status on MCS
    */
-  getFileStatus = async (dealId) =>
-    await getFileStatus(this.isCalibration, dealId)
+  getFileStatus = async (dealId) => await getFileStatus(dealId)
 
   /**
    * Mints file as NFT availiable to view on Opensea
@@ -117,7 +125,7 @@ class mcsSDK {
    */
   mintAsset = async (sourceFileUploadId, nft, generateMetadata = true) =>
     await mint(
-      this.isCalibration,
+      this.mcsApi,
       this.web3,
       this.publicKey,
       sourceFileUploadId,
@@ -146,7 +154,7 @@ class mcsSDK {
     pageSize = 10,
   ) =>
     await getDealList(
-      this.isCalibration,
+      this.mcsApi,
       wallet,
       fileName,
       orderBy,
@@ -164,7 +172,7 @@ class mcsSDK {
    * @returns
    */
   getFileDetails = async (sourceFileUploadId, dealId) =>
-    await getDealDetail(this.isCalibration, sourceFileUploadId, dealId)
+    await getDealDetail(this.mcsApi, sourceFileUploadId, dealId)
 }
 
 module.exports = { mcsSDK }
