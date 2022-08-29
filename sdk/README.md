@@ -16,7 +16,7 @@
 
 # Introduction
 
-A javascript software development kit for the Multi-Chain Storage (MCS) https://mcs.filswan.com service. It provides a convenient interface for working with the MCS API from a web browser or Node.js. This SDK has the following functionalities:
+A javascript software development kit for the Multi-Chain Storage (MCS) calibration https://calibration-mcs.filswan.com service. It provides a convenient interface for working with the MCS API from a web browser or Node.js. This SDK has the following functionalities:
 
 - **POST**    upload file to Filswan IPFS gate way
 - **POST**    make payment to swan filecoin storage gate way
@@ -47,29 +47,30 @@ Install the package using npm
 
 ```
 npm init -y
-npm install js-mcs-sdk
+npm install js-mcs-sdk-calibration
 ```
 
 ## Getting Started
 
-First you should set your private key and RPC-url as environment variables in a `.env` file
+First you should set your private key and RPC-url as environment variables in a `.env` file. Mumbai network and Binance Testnet are supported.
 
 ```js
 PRIVATE_KEY=<PRIVATE_KEY>
 RPC_URL=https://polygon-mumbai.g.alchemy.com/v2/<API_KEY>
+BSC_RPC_URL="https://data-seed-prebsc-1-s1.binance.org:8545"
 ```
 
 Example of uploading a single file using the MCS SDK.
 
 ```js
 require('dotenv').config()
-const { mcsSDK } = require('js-mcs-sdk')
+const { mcsSDK } = require('js-mcs-sdk-calibration')
 const fs = require('fs')
 
 // set up js-mcs-sdk
 const mcs = new mcsSDK({
   privateKey: process.env.PRIVATE_KEY,
-  rpcUrl: process.env.RPC_URL,
+  rpcUrl: process.env.RPC_URL, // process.env.BSC_RPC_URL for tbnc network
 })
 
 async function main() {
