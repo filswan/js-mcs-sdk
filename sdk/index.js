@@ -35,7 +35,6 @@ class mcsSDK {
   constructor({
     privateKey,
     rpcUrl = 'https://matic-mumbai.chainstacklabs.com',
-    network = 'mumbai',
   }) {
     this.version = packageJson.version
     this.web3 = new Web3(rpcUrl)
@@ -43,7 +42,7 @@ class mcsSDK {
       this.setAccount(privateKey)
     }
 
-    this.setApi(network)
+    this.setApi()
   }
 
   /**
@@ -58,19 +57,15 @@ class mcsSDK {
     ).address
   }
 
-  setApi = async (network) => {
+  setApi = async () => {
     let id = await this.web3.eth.net.getId()
 
-    if (network == 'tbnc' && id == 97) {
-      this.mcsApi = MCS_BSC_API
-      this.storageApi = STORAGE_BSC_API
-    } else if (network == 'matic' && id == 80001) {
+    if (id == 80001) {
+      this.network = 'mumbai'
       this.mcsApi = MCS_API
       this.storageApi = STORAGE_API
     } else {
-      throw new Error(
-        `Invalid network (network: ${network}) and RPC combination (chainID: ${id})`,
-      )
+      throw new Error(`Unsupported RPC network (chainID: ${id})`)
     }
   }
 
