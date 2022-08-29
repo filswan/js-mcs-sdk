@@ -71,6 +71,7 @@ const fs = require('fs')
 const mcs = new mcsSDK({
   privateKey: process.env.PRIVATE_KEY,
   rpcUrl: process.env.RPC_URL, // process.env.BSC_RPC_URL for tbnc network
+  network: 'mumbai', // 'tbnc' for tbnc network
 })
 
 async function main() {

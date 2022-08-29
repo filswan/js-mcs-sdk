@@ -35,6 +35,7 @@ class mcsSDK {
   constructor({
     privateKey,
     rpcUrl = 'https://matic-mumbai.chainstacklabs.com',
+    network = 'mumbai',
   }) {
     this.version = packageJson.version
     this.web3 = new Web3(rpcUrl)
@@ -42,7 +43,8 @@ class mcsSDK {
       this.setAccount(privateKey)
     }
 
-    this.setApi()
+    this.network = network
+    this.setApi(network)
   }
 
   /**
@@ -57,19 +59,27 @@ class mcsSDK {
     ).address
   }
 
-  setApi = async () => {
-    let id = await this.web3.eth.net.getId()
-
-    if (id == 97) {
-      this.network = 'tbnc'
+  setApi = (network) => {
+    if (network == 'tbnc') {
       this.mcsApi = MCS_BSC_API
       this.storageApi = STORAGE_BSC_API
-    } else if (id == 80001) {
-      this.network = 'mumbai'
+    } else if (network == 'mumbai') {
       this.mcsApi = MCS_API
       this.storageApi = STORAGE_API
     } else {
-      throw new Error(`Unsupported RPC network (chainID: ${id})`)
+      throw new Error(`Unsupported network (network: ${network})`)
+    }
+  }
+
+  checkNetwork = async () => {
+    let id = await this.web3.eth.getChainId()
+    if (
+      (this.network == 'mumbai' && id != 80001) ||
+      (this.network == 'tbnc' && id != 97)
+    ) {
+      throw new Error(
+        `Network (${this.network}) and RPC URL do not match (chain ID: ${id})`,
+      )
     }
   }
 
@@ -80,8 +90,10 @@ class mcsSDK {
    * @param {{delay: number, duration: number, fileType: number}} [options]
    * @returns {Array} Array of upload API responses
    */
-  upload = async (files, options) =>
-    await mcsUpload(this.mcsApi, this.publicKey, files, options)
+  upload = async (files, options) => {
+    await this.checkNetwork()
+    return await mcsUpload(this.mcsApi, this.publicKey, files, options)
+  }
 
   /**
    * Makes payment for unpaid files on MCS. Throws error if file is already paid.
@@ -91,6 +103,7 @@ class mcsSDK {
    * @returns {Object} payment transaction response
    */
   makePayment = async (sourceFileUploadId, amount, size) => {
+    await this.checkNetwork()
     let paymentAmount = amount
     if (paymentAmount == '0' || paymentAmount == '') {
       paymentAmount = await getAverageAmount(
@@ -119,7 +132,10 @@ class mcsSDK {
    * @param {string} sourceFileUploadId
    * @returns {Object} file status on MCS
    */
-  getFileStatus = async (dealId) => await getFileStatus(dealId)
+  getFileStatus = async (dealId) => {
+    await this.checkNetwork()
+    return await getFileStatus(dealId)
+  }
 
   /**
    * Mints file as NFT availiable to view on Opensea
@@ -128,8 +144,9 @@ class mcsSDK {
    * @param {{name: string, description: string, image: string, tx_hash: string}} nft
    * @returns {Object} mint info reponse object
    */
-  mintAsset = async (sourceFileUploadId, nft, generateMetadata = true) =>
-    await mint(
+  mintAsset = async (sourceFileUploadId, nft, generateMetadata = true) => {
+    await this.checkNetwork()
+    return await mint(
       this.mcsApi,
       this.web3,
       this.publicKey,
@@ -137,6 +154,7 @@ class mcsSDK {
       nft,
       generateMetadata,
     )
+  }
 
   /**
    * List the user's uploaded files on MCS
@@ -157,8 +175,9 @@ class mcsSDK {
     isMinted = '',
     pageNumber = 1,
     pageSize = 10,
-  ) =>
-    await getDealList(
+  ) => {
+    await this.checkNetwork()
+    return await getDealList(
       this.mcsApi,
       wallet,
       fileName,
@@ -169,15 +188,17 @@ class mcsSDK {
       pageNumber,
       pageSize,
     )
-
+  }
   /**
    *
    * @param {string} sourceFileUploadId
    * @param {number} dealId - dealId can be found from listUploads
    * @returns
    */
-  getFileDetails = async (sourceFileUploadId, dealId) =>
-    await getDealDetail(this.mcsApi, sourceFileUploadId, dealId)
+  getFileDetails = async (sourceFileUploadId, dealId) => {
+    await this.checkNetwork()
+    return await getDealDetail(this.mcsApi, sourceFileUploadId, dealId)
+  }
 }
 
 module.exports = { mcsSDK }
