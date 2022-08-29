@@ -58,13 +58,19 @@ class mcsSDK {
     ).address
   }
 
-  setApi = (network) => {
-    if (network == 'tbnc') {
+  setApi = async (network) => {
+    let id = await this.web3.eth.net.getId()
+
+    if (network == 'tbnc' && id == 97) {
       this.mcsApi = MCS_BSC_API
       this.storageApi = STORAGE_BSC_API
-    } else {
+    } else if (network == 'matic' && id == 80001) {
       this.mcsApi = MCS_API
       this.storageApi = STORAGE_API
+    } else {
+      throw new Error(
+        `Invalid network (network: ${network}) and RPC combination (chainID: ${id})`,
+      )
     }
   }
 
