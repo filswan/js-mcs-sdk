@@ -62,7 +62,7 @@ class mcsSDK {
   setApi = (network) => {
     if (network == 'tbnc') {
       this.mcsApi = MCS_BSC_API
-      this.storageApi = STORAGE_BSC_API
+      this.storageApi = STORAGE_API
     } else if (network == 'mumbai') {
       this.mcsApi = MCS_API
       this.storageApi = STORAGE_API
