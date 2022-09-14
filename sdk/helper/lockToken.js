@@ -1,6 +1,6 @@
 const erc20ABI = require('../abi/ERC20.json')
 const swanPaymentABI = require('../abi/SwanPayment.json')
-const { getParams, getFilePaymentStatus, getPaymentInfo } = require('./mcsApi')
+const { getParams, getFilePaymentStatus } = require('./mcsApi')
 
 const one = '1000000000000000000'
 const ten = '10000000000000000000'
@@ -15,17 +15,26 @@ const lockToken = async (
   amount,
   size,
 ) => {
-  const paymentInfo = await getPaymentInfo(mcsApi, sourceFileUploadId)
-  const wCid = paymentInfo.data.w_cid
+  // check if file is free/paid for
+  const filePaymentStatus = await getFilePaymentStatus(
+    mcsApi,
+    sourceFileUploadId,
+  )
+  const paymentStatus = filePaymentStatus.data.source_file_upload
+
+  if (paymentStatus?.is_free || paymentStatus?.status != 'Pending') {
+    throw new Error('This file is already paid for.')
+  }
+  const wCid = paymentStatus.w_cid
 
   const params = await getParams(mcsApi)
 
-  const usdcAddress = params.USDC_ADDRESS
-  const recipientAddress = params.PAYMENT_RECIPIENT_ADDRESS
-  const gatewayContractAddress = params.PAYMENT_CONTRACT_ADDRESS
-  const gasLimit = params.GAS_LIMIT
-  const multiplyFactor = params.PAY_MULTIPLY_FACTOR
-  const lockTime = params.LOCK_TIME
+  const usdcAddress = params.usdc_address
+  const recipientAddress = params.payment_recipient_address
+  const gatewayContractAddress = params.payment_contract_address
+  const gasLimit = params.gas_limit
+  const multiplyFactor = params.pay_multiply_factor
+  const lockTime = params.lock_time
 
   const optionsObj = {
     from: payer,
@@ -37,7 +46,10 @@ const lockToken = async (
   const approveTx = await USDCInstance.methods
     .approve(
       gatewayContractAddress,
-      web3.utils.toWei((Number(amount) * multiplyFactor).toString(), 'ether'),
+      web3.utils.toWei(
+        (Number(amount) * multiplyFactor).toFixed(6).toString(),
+        'mwei',
+      ),
     )
     .send(optionsObj)
 
@@ -48,10 +60,10 @@ const lockToken = async (
 
   const lockObj = {
     id: wCid,
-    minPayment: web3.utils.toWei(amount, 'ether'),
+    minPayment: web3.utils.toWei(Number(amount).toFixed(6), 'mwei'),
     amount: web3.utils.toWei(
-      (Number(amount) * multiplyFactor).toString(),
-      'ether',
+      (Number(amount) * multiplyFactor).toFixed(6).toString(),
+      'mwei',
     ),
     lockTime: 86400 * lockTime,
     recipient: recipientAddress,
