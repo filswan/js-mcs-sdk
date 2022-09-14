@@ -8,11 +8,11 @@ const mcs = new mcsSDK({
 console.log(mcs.publicKey)
 
 async function main() {
-  const W_CID = ''
+  const SOURCE_FILE_UPLOAD_ID = ''
   const FILE_SIZE = ''
   const MIN_AMOUNT = ''
 
-  const tx = await mcs.makePayment(W_CID, MIN_AMOUNT, FILE_SIZE)
+  const tx = await mcs.makePayment(SOURCE_FILE_UPLOAD_ID, MIN_AMOUNT, FILE_SIZE)
   console.log('transaction hash: ' + tx.transactionHash)
 }
 
