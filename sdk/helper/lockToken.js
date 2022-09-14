@@ -46,7 +46,10 @@ const lockToken = async (
   const approveTx = await USDCInstance.methods
     .approve(
       gatewayContractAddress,
-      web3.utils.toWei((Number(amount) * multiplyFactor).toString(), 'ether'),
+      web3.utils.toWei(
+        (Number(amount) * multiplyFactor).toFixed(6).toString(),
+        'mwei',
+      ),
     )
     .send(optionsObj)
 
@@ -57,10 +60,10 @@ const lockToken = async (
 
   const lockObj = {
     id: wCid,
-    minPayment: web3.utils.toWei(amount, 'ether'),
+    minPayment: web3.utils.toWei(Number(amount).toFixed(6), 'mwei'),
     amount: web3.utils.toWei(
-      (Number(amount) * multiplyFactor).toString(),
-      'ether',
+      (Number(amount) * multiplyFactor).toFixed(6).toString(),
+      'mwei',
     ),
     lockTime: 86400 * lockTime,
     recipient: recipientAddress,

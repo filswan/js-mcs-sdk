@@ -35,7 +35,7 @@ class mcsSDK {
   constructor({
     privateKey,
     rpcUrl = 'https://matic-mumbai.chainstacklabs.com',
-    network = 'mumbai',
+    network = 'polygon',
   }) {
     this.version = packageJson.version
     this.web3 = new Web3(rpcUrl)
@@ -60,10 +60,7 @@ class mcsSDK {
   }
 
   setApi = (network) => {
-    if (network == 'tbnc') {
-      this.mcsApi = MCS_BSC_API
-      this.storageApi = STORAGE_API
-    } else if (network == 'mumbai') {
+    if (network == 'polygon') {
       this.mcsApi = MCS_API
       this.storageApi = STORAGE_API
     } else {
@@ -73,10 +70,7 @@ class mcsSDK {
 
   checkNetwork = async () => {
     let id = await this.web3.eth.getChainId()
-    if (
-      (this.network == 'mumbai' && id != 80001) ||
-      (this.network == 'tbnc' && id != 97)
-    ) {
+    if (this.network == 'polygon' && id != 137) {
       throw new Error(
         `Network (${this.network}) and RPC URL do not match (chain ID: ${id})`,
       )
