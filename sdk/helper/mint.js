@@ -29,12 +29,12 @@ const mint = async (
   }
 
   const params = await getParams(mcsApi)
-  const mintAddress = params.MINT_CONTRACT_ADDRESS
+  const mintAddress = params.mint_contract_address
   const mintContract = new web3.eth.Contract(minterABI, mintAddress)
 
   const optionsObj = {
     from: payer,
-    gas: params.GAS_LIMIT,
+    gas: params.gas_limit,
     gasPrice: await web3.eth.getGasPrice(),
   }
 
@@ -47,7 +47,7 @@ const mint = async (
   const mintInfo = {
     source_file_upload_id: sourceFileUploadId,
     tx_hash: mintTx.transactionHash,
-    token_id: tokenId,
+    token_id: parseInt(tokenId),
     mint_address: mintAddress,
   }
 

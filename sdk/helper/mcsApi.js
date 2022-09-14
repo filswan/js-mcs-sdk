@@ -70,6 +70,18 @@ const getPaymentInfo = async (mcsApi, sourceFileUploadId) => {
   }
 }
 
+const getFilePaymentStatus = async (mcsApi, sourceFileUploadId) => {
+  try {
+    const res = await axios.get(
+      `${mcsApi}/storage/source_file_upload/${sourceFileUploadId}`,
+    )
+    return res?.data
+  } catch (err) {
+    // Handle Error Here
+    console.error(err)
+  }
+}
+
 const postMintInfo = async (mcsApi, mintInfo) => {
   try {
     const res = await axios.post(`${mcsApi}/storage/mint/info`, mintInfo)
@@ -138,13 +150,13 @@ const getAverageAmount = async (
   if (cost[0]) storageCostPerUnit = cost[0]
 
   const params = await getParams(mcsApi)
-  billingPrice = params.filecoin_price || 5
+  billingPrice = params.filecoin_price
 
   let price =
     ((fileSizeInGB * duration * storageCostPerUnit * 5) / 365) * billingPrice
 
   let numberPrice = Number(price).toFixed(9)
-  return numberPrice > 0 ? numberPrice : '0.000000002'
+  return numberPrice > 0 ? numberPrice : '0.000002'
 }
 
 module.exports = {
