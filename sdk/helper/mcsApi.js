@@ -165,7 +165,6 @@ module.exports = {
   getFileStatus,
   getDealDetail,
   getPaymentInfo,
-  getFilePaymentStatus,
   postMintInfo,
   postLockPayment,
   getDealList,
