@@ -16,7 +16,7 @@
 
 # Introduction
 
-A javascript software development kit for the Multi-Chain Storage (MCS) calibration https://calibration-mcs.filswan.com service. It provides a convenient interface for working with the MCS API from a web browser or Node.js. This SDK has the following functionalities:
+A javascript software development kit for the Multi-Chain Storage (MCS) https://multichain.storage service. It provides a convenient interface for working with the MCS API from a web browser or Node.js. This SDK has the following functionalities:
 
 - **POST**    upload file to Filswan IPFS gate way
 - **POST**    make payment to swan filecoin storage gate way
@@ -28,10 +28,10 @@ A javascript software development kit for the Multi-Chain Storage (MCS) calibrat
 ## Prerequisites
 
 [Node.js](https://nodejs.org/en/) - v16.13.0 (npm v8.1.0) \
-Polygon Mumbai Testnet Wallet - [Metamask Tutorial](https://docs.filswan.com/getting-started/beginner-walkthrough/public-testnet/setup-metamask) \
-Polygon Mumbai Testnet RPC - [Signup via Alchemy](https://www.alchemy.com/)
+Polygon Wallet - [Metamask Tutorial](https://docs.filswan.com/getting-started/beginner-walkthrough/public-testnet/setup-metamask) \
+Polygon RPC - [Signup via Alchemy](https://www.alchemy.com/)
 
-You will also need Testnet USDC and MATIC balance to use this SDK. [Swan Faucet Tutorial](https://docs.filswan.com/development-resource/swan-token-contract/acquire-testnet-usdc-and-matic-tokens)
+You will also need USDC and MATIC balance to use this SDK.
 
 # MCS API
 
@@ -47,7 +47,7 @@ Install the package using npm
 
 ```
 npm init -y
-npm install js-mcs-sdk-calibration
+npm install js-mcs-sdk
 ```
 
 ## Getting Started
@@ -57,7 +57,6 @@ First you should set your private key and RPC-url as environment variables in a 
 ```js
 PRIVATE_KEY=<PRIVATE_KEY>
 RPC_URL=https://polygon-mumbai.g.alchemy.com/v2/<API_KEY>
-BSC_RPC_URL="https://data-seed-prebsc-1-s1.binance.org:8545"
 ```
 
 Example of uploading a single file using the MCS SDK.
@@ -70,7 +69,8 @@ const fs = require('fs')
 // set up js-mcs-sdk
 const mcs = new mcsSDK({
   privateKey: process.env.PRIVATE_KEY,
-  rpcUrl: process.env.RPC_URL, // process.env.BSC_RPC_URL for tbnc network
+  rpcUrl: process.env.RPC_URL,
+  network: 'polygon',
 })
 
 async function main() {
