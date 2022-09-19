@@ -34,7 +34,7 @@ class mcsSDK {
    */
   constructor({
     privateKey,
-    rpcUrl = 'https://matic-mumbai.chainstacklabs.com',
+    rpcUrl = 'https://polygon-rpc.com/',
     network = 'polygon',
   }) {
     this.version = packageJson.version
