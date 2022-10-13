@@ -1,11 +1,5 @@
 require('dotenv').config('./.env')
 const { mcsSDK } = require('js-mcs-sdk')
-const mcs = new mcsSDK({
-  privateKey: process.env.PRIVATE_KEY,
-  rpcUrl: process.env.RPC_URL,
-})
-
-console.log(mcs.publicKey)
 
 async function main() {
   const GENERATE_METADATA = true
@@ -18,6 +12,11 @@ async function main() {
     attributes: [],
     external_url: IPFS_URL,
   }
+
+  const mcs = await mcsSDK.initialize({
+    privateKey: process.env.PRIVATE_KEY,
+    rpcUrl: process.env.RPC_URL,
+  })
 
   const mintResponse = await mcs.mintAsset(
     SOURCE_FILE_UPLOAD_ID,

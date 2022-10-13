@@ -1,11 +1,5 @@
 require('dotenv').config('./.env')
 const { mcsSDK } = require('js-mcs-sdk')
-const mcs = new mcsSDK({
-  privateKey: process.env.PRIVATE_KEY,
-  rpcUrl: process.env.RPC_URL,
-})
-
-console.log(mcs.publicKey)
 
 async function main() {
   const FILE_NAME = ''
@@ -15,6 +9,11 @@ async function main() {
   const IS_MINTED = ''
   const PAGE_NUMBER = 1
   const PAGE_SIZE = 10
+
+  const mcs = await mcsSDK.initialize({
+    privateKey: process.env.PRIVATE_KEY,
+    rpcUrl: process.env.RPC_URL,
+  })
 
   const uploads = await mcs.getUploads(
     mcs.publicKey,
