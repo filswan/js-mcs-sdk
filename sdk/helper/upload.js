@@ -1,6 +1,6 @@
 const { uploadPromise } = require('./mcsApi')
 
-const mcsUpload = async (mcsApi, address, files, options) => {
+const mcsUpload = async (mcsApi, jwt, address, files, options) => {
   const delayIncrement = parseInt(options?.delay) || 1000
   let apiDelay = 0
 
@@ -9,6 +9,7 @@ const mcsUpload = async (mcsApi, address, files, options) => {
     return new Promise((resolve) => setTimeout(resolve, apiDelay)).then(() =>
       uploadPromise(
         mcsApi,
+        jwt,
         file.fileName,
         file.file,
         address,

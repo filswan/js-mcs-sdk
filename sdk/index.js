@@ -8,73 +8,54 @@ const {
   getDealList,
   getDealDetail,
   getAverageAmount,
+  login,
 } = require('./helper/mcsApi')
 const { mint } = require('./helper/mint')
 
-const {
-  MCS_API,
-  STORAGE_API,
-  MCS_BSC_API,
-  STORAGE_BSC_API,
-} = require('./helper/constants')
+const { MCS_API, STORAGE_API } = require('./helper/constants')
+
+const getApi = (chainId) => {
+  if (chainId == 137) {
+    return {
+      mcsApi: MCS_API,
+      storageApi: STORAGE_API,
+      loginNetwork: 'polygon.mainnet',
+    }
+  } else {
+    throw new Error(`Unsupported chain id (${chainId})`)
+  }
+}
 
 class mcsSDK {
-  /**
-   * Constructs a class bound to the user and endpoint.
-   *
-   * @example
-   * ```js
-   * const { mcsSDK } = require('js-mcs-sdk')
-   * const mcs = new mcsSDK({
-   *   privateKey: PRIVATE_KEY
-   *   rpcURL: 'https://matic-mumbai.chainstacklabs.com'
-   * })
-   * ```
-   * @param {{privateKey: string, rpcUrl: string}} options
-   */
-  constructor({
-    privateKey,
-    rpcUrl = 'https://polygon-rpc.com/',
-    network = 'polygon',
-  }) {
+  constructor(web3, publicKey, apis, jwt) {
     this.version = packageJson.version
-    this.web3 = new Web3(rpcUrl)
-    if (privateKey) {
-      this.setAccount(privateKey)
-    }
+    this.web3 = web3
+    this.publicKey = publicKey
 
-    this.network = network
-    this.setApi(network)
+    this.mcsApi = apis.mcsApi
+    this.storageApi = apis.storageApi
+    this.jwt = jwt
   }
 
-  /**
-   * Adds wallet to web3 object
-   *
-   * @param {string} privateKey
-   */
-  setAccount = (privateKey) => {
-    this.web3.eth.accounts.wallet.add(privateKey)
-    this.publicKey = this.web3.eth.accounts.privateKeyToAccount(
+  static async initialize({ privateKey, rpcUrl }) {
+    const web3 = new Web3(rpcUrl)
+    web3.eth.accounts.wallet.add(privateKey)
+    const publicKey = web3.eth.accounts.privateKeyToAccount(privateKey).address
+
+    const chainId = await web3.eth.getChainId()
+    const apis = getApi(chainId)
+
+    const loginResponse = await login(
+      apis.mcsApi,
+      web3,
+      publicKey,
       privateKey,
-    ).address
-  }
+      apis.loginNetwork,
+    )
 
-  setApi = (network) => {
-    if (network == 'polygon') {
-      this.mcsApi = MCS_API
-      this.storageApi = STORAGE_API
-    } else {
-      throw new Error(`Unsupported network (network: ${network})`)
-    }
-  }
+    const jwt = loginResponse.jwt_token
 
-  checkNetwork = async () => {
-    let id = await this.web3.eth.getChainId()
-    if (this.network == 'polygon' && id != 137) {
-      throw new Error(
-        `Network (${this.network}) and RPC URL do not match (chain ID: ${id})`,
-      )
-    }
+    return new mcsSDK(web3, publicKey, apis, jwt)
   }
 
   /**
@@ -85,8 +66,13 @@ class mcsSDK {
    * @returns {Array} Array of upload API responses
    */
   upload = async (files, options) => {
-    await this.checkNetwork()
-    return await mcsUpload(this.mcsApi, this.publicKey, files, options)
+    return await mcsUpload(
+      this.mcsApi,
+      this.jwt,
+      this.publicKey,
+      files,
+      options,
+    )
   }
 
   /**
@@ -97,12 +83,12 @@ class mcsSDK {
    * @returns {Object} payment transaction response
    */
   makePayment = async (sourceFileUploadId, amount, size) => {
-    await this.checkNetwork()
     let paymentAmount = amount
     if (paymentAmount == '0' || paymentAmount == '') {
       paymentAmount = await getAverageAmount(
         this.mcsApi,
         this.storageApi,
+        this.jwt,
         this.publicKey,
         size,
       )
@@ -110,6 +96,7 @@ class mcsSDK {
 
     let tx = await lockToken(
       this.mcsApi,
+      this.jwt,
       this.web3,
       this.publicKey,
       sourceFileUploadId,
@@ -127,8 +114,7 @@ class mcsSDK {
    * @returns {Object} file status on MCS
    */
   getFileStatus = async (dealId) => {
-    await this.checkNetwork()
-    return await getFileStatus(dealId)
+    return await getFileStatus(this.mcsApi, this.jwt, dealId)
   }
 
   /**
@@ -139,9 +125,9 @@ class mcsSDK {
    * @returns {Object} mint info reponse object
    */
   mintAsset = async (sourceFileUploadId, nft, generateMetadata = true) => {
-    await this.checkNetwork()
     return await mint(
       this.mcsApi,
+      this.jwt,
       this.web3,
       this.publicKey,
       sourceFileUploadId,
@@ -170,9 +156,9 @@ class mcsSDK {
     pageNumber = 1,
     pageSize = 10,
   ) => {
-    await this.checkNetwork()
     return await getDealList(
       this.mcsApi,
+      this.jwt,
       wallet,
       fileName,
       orderBy,
@@ -190,8 +176,12 @@ class mcsSDK {
    * @returns
    */
   getFileDetails = async (sourceFileUploadId, dealId) => {
-    await this.checkNetwork()
-    return await getDealDetail(this.mcsApi, sourceFileUploadId, dealId)
+    return await getDealDetail(
+      this.mcsApi,
+      this.jwt,
+      sourceFileUploadId,
+      dealId,
+    )
   }
 }
 

@@ -4,6 +4,7 @@ const { mcsUpload } = require('./upload')
 
 const mint = async (
   mcsApi,
+  jwt,
   web3,
   payer,
   sourceFileUploadId,
@@ -13,13 +14,14 @@ const mint = async (
   let nft_uri = nftObj // if user did not wish to generate metadata
 
   if (generateMetadata) {
-    const paymentInfo = await getPaymentInfo(mcsApi, sourceFileUploadId)
-    const txHash = paymentInfo?.data.tx_hash || ''
+    const paymentInfo = await getPaymentInfo(mcsApi, jwt, sourceFileUploadId)
+    const txHash = paymentInfo?.data?.tx_hash || ''
 
     let nft = { ...nftObj, tx_hash: txHash }
 
     const uploadResponse = await mcsUpload(
       mcsApi,
+      jwt,
       payer,
       [{ fileName: nft.name, file: JSON.stringify(nft) }],
       { fileType: 1 },
@@ -51,7 +53,7 @@ const mint = async (
     mint_address: mintAddress,
   }
 
-  const mintInfoResponse = await postMintInfo(mcsApi, mintInfo)
+  const mintInfoResponse = await postMintInfo(mcsApi, jwt, mintInfo)
 
   return mintInfoResponse
 }

@@ -9,6 +9,7 @@ const oneThousand = '1000000000000000000000'
 
 const lockToken = async (
   mcsApi,
+  jwt,
   web3,
   payer,
   sourceFileUploadId,
@@ -18,6 +19,7 @@ const lockToken = async (
   // check if file is free/paid for
   const filePaymentStatus = await getFilePaymentStatus(
     mcsApi,
+    jwt,
     sourceFileUploadId,
   )
   const paymentStatus = filePaymentStatus.data.source_file_upload
@@ -43,14 +45,12 @@ const lockToken = async (
   }
 
   const USDCInstance = new web3.eth.Contract(erc20ABI, usdcAddress)
+  const lockAmount = web3.utils.toWei(
+    (Number(amount) * multiplyFactor).toFixed(6).toString(),
+    'mwei',
+  )
   const approveTx = await USDCInstance.methods
-    .approve(
-      gatewayContractAddress,
-      web3.utils.toWei(
-        (Number(amount) * multiplyFactor).toFixed(6).toString(),
-        'mwei',
-      ),
-    )
+    .approve(gatewayContractAddress, lockAmount)
     .send(optionsObj)
 
   const paymentInstance = new web3.eth.Contract(
@@ -61,10 +61,7 @@ const lockToken = async (
   const lockObj = {
     id: wCid,
     minPayment: web3.utils.toWei(Number(amount).toFixed(6), 'mwei'),
-    amount: web3.utils.toWei(
-      (Number(amount) * multiplyFactor).toFixed(6).toString(),
-      'mwei',
-    ),
+    amount: lockAmount,
     lockTime: 86400 * lockTime,
     recipient: recipientAddress,
     size: size,

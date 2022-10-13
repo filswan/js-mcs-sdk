@@ -1,4 +1,4 @@
-# js-mcs-sdk
+# js-mcs-sdk-calibration
 
 [![Made by FilSwan](https://img.shields.io/badge/made%20by-FilSwan-green.svg)](https://www.filswan.com/)
 [![Chat on discord](https://img.shields.io/badge/join%20-discord-brightgreen.svg)](https://discord.com/invite/KKGhy8ZqzK)
@@ -16,22 +16,22 @@
 
 # Introduction
 
-A javascript software development kit for the Multi-Chain Storage (MCS) https://multichain.storage service. It provides a convenient interface for working with the MCS API from a web browser or Node.js. This SDK has the following functionalities:
+A javascript software development kit for the Multi-Chain Storage (MCS) calibration https://calibration-mcs.filswan.com service. It provides a convenient interface for working with the MCS API from a web browser or Node.js. This SDK has the following functionalities:
 
-- **POST**    upload file to Filswan IPFS gate way
-- **POST**    make payment to swan filecoin storage gate way
-- **POST**    mint asset as NFT
-- **GET**       list of files uploaded
-- **GET**       files by cid
-- **GET**       status from filecoin
+- **POST** upload file to Filswan IPFS gate way
+- **POST** make payment to swan filecoin storage gate way
+- **POST** mint asset as NFT
+- **GET** list of files uploaded
+- **GET** files by cid
+- **GET** status from filecoin
 
 ## Prerequisites
 
 [Node.js](https://nodejs.org/en/) - v16.13.0 (npm v8.1.0) \
-Polygon Wallet - [Metamask Tutorial](https://docs.filswan.com/getting-started/beginner-walkthrough/public-testnet/setup-metamask) \
-Polygon RPC - [Signup via Alchemy](https://www.alchemy.com/)
+Polygon Mumbai Testnet Wallet - [Metamask Tutorial](https://docs.filswan.com/getting-started/beginner-walkthrough/public-testnet/setup-metamask) \
+Polygon Mumbai Testnet RPC - [Signup via Alchemy](https://www.alchemy.com/)
 
-You will also need USDC and MATIC balance to use this SDK.
+You will also need Testnet USDC and MATIC balance to use this SDK. [Swan Faucet Tutorial](https://docs.filswan.com/development-resource/swan-token-contract/acquire-testnet-usdc-and-matic-tokens)
 
 # MCS API
 
@@ -47,7 +47,7 @@ Install the package using npm
 
 ```
 npm init -y
-npm install js-mcs-sdk
+npm install js-mcs-sdk-calibration
 ```
 
 ## Getting Started
@@ -66,16 +66,15 @@ require('dotenv').config()
 const { mcsSDK } = require('js-mcs-sdk-calibration')
 const fs = require('fs')
 
-// set up js-mcs-sdk
-const mcs = new mcsSDK({
-  privateKey: process.env.PRIVATE_KEY,
-  rpcUrl: process.env.RPC_URL,
-  network: 'polygon',
-})
-
 async function main() {
   const testFile = JSON.stringify({ address: mcs.publicKey })
   const fileArray = [{ fileName: `${mcs.publicKey}.txt`, file: testFile }]
+
+  // set up js-mcs-sdk
+  const mcs = await mcsSDK.initialize({
+    privateKey: process.env.PRIVATE_KEY,
+    rpcUrl: process.env.RPC_URL,
+  })
 
   const uploadResponse = await mcs.upload(fileArray)
   console.log(uploadResponse)

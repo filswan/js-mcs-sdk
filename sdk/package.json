@@ -1,6 +1,6 @@
 {
   "name": "js-mcs-sdk",
-  "version": "2.4.3",
+  "version": "2.5.0",
   "description": "A SDK for the MCS service. It provides a convenient interface for working with the MCS API from a web browser or Node.js",
   "homepage": "https://github.com/filswan/js-mcs-sdk",
   "main": "index.js",
