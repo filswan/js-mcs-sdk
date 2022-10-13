@@ -31,7 +31,7 @@ A javascript software development kit for the Multi-Chain Storage (MCS) calibrat
 Polygon Mumbai Testnet Wallet - [Metamask Tutorial](https://docs.filswan.com/getting-started/beginner-walkthrough/public-testnet/setup-metamask) \
 Polygon Mumbai Testnet RPC - [Signup via Alchemy](https://www.alchemy.com/)
 
-You will also need Testnet USDC and MATIC balance to use this SDK. [Swan Faucet Tutorial](https://docs.filswan.com/development-resource/swan-token-contract/acquire-testnet-usdc-and-matic-tokens)
+You will also need USDC and MATIC balance to use this SDK.
 
 # MCS API
 
@@ -47,7 +47,7 @@ Install the package using npm
 
 ```
 npm init -y
-npm install js-mcs-sdk-calibration
+npm install js-mcs-sdk
 ```
 
 ## Getting Started
@@ -63,7 +63,7 @@ Example of uploading a single file using the MCS SDK.
 
 ```js
 require('dotenv').config()
-const { mcsSDK } = require('js-mcs-sdk-calibration')
+const { mcsSDK } = require('js-mcs-sdk')
 const fs = require('fs')
 
 async function main() {
