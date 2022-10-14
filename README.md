@@ -83,6 +83,20 @@ async function main() {
 main()
 ```
 
+## Testing
+
+There are some examples in the `sdk-test` folder.
+
+```
+cd sdk-test
+```
+
+`node upload.js` uploads a simple file (you can edit the `FILE_NAME` and `FILE_PATH`)
+
+`node makePayment.js` pays for a file using its `source file upload id` (you can edit the `FILE_NAME` and `FILE_PATH`) (will throw an Error if the file cannot be paid for)
+
+`node mintAsset.js` mints a file as a NFT by providing `source file upload id` and other information
+
 ## Documentation
 
 For more examples please see the [SDK documentation](https://docs.filswan.com/multi-chain-storage/developer-quickstart/sdk/js-mcs-sdk) or the example directory in the [sdk-test repository](https://github.com/filswan/js-mcs-sdk/tree/main/sdk-test), which contains sample code for all SDK functionalities

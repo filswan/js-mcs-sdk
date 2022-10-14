@@ -3,7 +3,7 @@ const { mcsSDK } = require('js-mcs-sdk')
 
 async function main() {
   const GENERATE_METADATA = true
-  const SOURCE_FILE_UPLOAD_ID = 0
+  const SOURCE_FILE_UPLOAD_ID = 150786
   const IPFS_URL = ''
   const NFT = {
     name: 'NFT_NAME',
@@ -17,6 +17,8 @@ async function main() {
     privateKey: process.env.PRIVATE_KEY,
     rpcUrl: process.env.RPC_URL,
   })
+
+  console.log('version:', mcs.version)
 
   const mintResponse = await mcs.mintAsset(
     SOURCE_FILE_UPLOAD_ID,

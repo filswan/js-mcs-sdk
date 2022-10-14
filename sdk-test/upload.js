@@ -11,6 +11,8 @@ async function main() {
     rpcUrl: process.env.RPC_URL,
   })
 
+  console.log('version:', mcs.version)
+
   const fileArray = [
     { fileName: FILE_NAME, file: fs.createReadStream(FILE_PATH) },
   ]
