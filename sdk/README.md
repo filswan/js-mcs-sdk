@@ -16,7 +16,7 @@
 
 # Introduction
 
-A javascript software development kit for the Multi-Chain Storage (MCS) calibration https://calibration-mcs.filswan.com service. It provides a convenient interface for working with the MCS API from a web browser or Node.js. This SDK has the following functionalities:
+A javascript software development kit for the Multi-Chain Storage (MCS) https://www.multichain.storage/ service. It provides a convenient interface for working with the MCS API from a web browser or Node.js. This SDK has the following functionalities:
 
 - **POST** upload file to Filswan IPFS gate way
 - **POST** make payment to swan filecoin storage gate way
@@ -29,7 +29,7 @@ A javascript software development kit for the Multi-Chain Storage (MCS) calibrat
 
 [Node.js](https://nodejs.org/en/) - v16.13.0 (npm v8.1.0) \
 Polygon Mumbai Testnet Wallet - [Metamask Tutorial](https://docs.filswan.com/getting-started/beginner-walkthrough/public-testnet/setup-metamask) \
-Polygon Mumbai Testnet RPC - [Signup via Alchemy](https://www.alchemy.com/)
+Polygon Mainnet RPC - [Signup via Alchemy](https://www.alchemy.com/)
 
 You will also need USDC and MATIC balance to use this SDK.
 
@@ -56,7 +56,7 @@ First you should set your private key and RPC-url as environment variables in a 
 
 ```js
 PRIVATE_KEY=<PRIVATE_KEY>
-RPC_URL=https://polygon-mumbai.g.alchemy.com/v2/<API_KEY>
+RPC_URL=<RPC_URL>
 ```
 
 Example of uploading a single file using the MCS SDK.
@@ -82,6 +82,20 @@ async function main() {
 
 main()
 ```
+
+## Testing
+
+There are some examples in the `sdk-test` folder.
+
+```
+cd sdk-test
+```
+
+`node upload.js` uploads a simple file (you can edit the `FILE_NAME` and `FILE_PATH`)
+
+`node makePayment.js` pays for a file using its `source file upload id` (you can edit the `FILE_NAME` and `FILE_PATH`) (will throw an Error if the file cannot be paid for)
+
+`node mintAsset.js` mints a file as a NFT by providing `source file upload id` and other information
 
 ## Documentation
 
