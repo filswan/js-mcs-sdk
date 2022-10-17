@@ -2,7 +2,6 @@ require('dotenv').config('./.env')
 const { mcsSDK } = require('js-mcs-sdk')
 
 async function main() {
-  const GENERATE_METADATA = true
   const SOURCE_FILE_UPLOAD_ID = 150786
   const IPFS_URL = ''
   const NFT = {
@@ -20,11 +19,7 @@ async function main() {
 
   console.log('version:', mcs.version)
 
-  const mintResponse = await mcs.mintAsset(
-    SOURCE_FILE_UPLOAD_ID,
-    NFT,
-    GENERATE_METADATA,
-  )
+  const mintResponse = await mcs.mintAsset(SOURCE_FILE_UPLOAD_ID, NFT)
   console.log(mintResponse)
 }
 
