@@ -67,14 +67,14 @@ const { mcsSDK } = require('js-mcs-sdk')
 const fs = require('fs')
 
 async function main() {
-  const testFile = JSON.stringify({ address: mcs.publicKey })
-  const fileArray = [{ fileName: `${mcs.publicKey}.txt`, file: testFile }]
-
   // set up js-mcs-sdk
   const mcs = await mcsSDK.initialize({
     privateKey: process.env.PRIVATE_KEY,
     rpcUrl: process.env.RPC_URL,
   })
+
+  const testFile = JSON.stringify({ address: mcs.publicKey })
+  const fileArray = [{ fileName: `${mcs.publicKey}.txt`, file: testFile }]
 
   const uploadResponse = await mcs.upload(fileArray)
   console.log(uploadResponse)
