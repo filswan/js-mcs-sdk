@@ -37,6 +37,13 @@ class mcsSDK {
     this.jwt = jwt
   }
 
+  /**
+   * Initializes new MCS SDK instance
+   *
+   * @param {string} privateKey - wallet private key
+   * @param {string} rpcUrl - endpoint to read and send data on the blockchain
+   * @returns {Object} MCS SDK instance
+   */
   static async initialize({ privateKey, rpcUrl }) {
     const web3 = new Web3(rpcUrl)
     web3.eth.accounts.wallet.add(privateKey)
@@ -78,8 +85,9 @@ class mcsSDK {
   /**
    * Makes payment for unpaid files on MCS. Throws error if file is already paid.
    *
-   * @param {string} payloadCid
+   * @param {Number} sourceFileUploadId
    * @param {string} amount - pass amount as string to avoid BN precision errors
+   * @param {string} size - file size in bytes
    * @returns {Object} payment transaction response
    */
   makePayment = async (sourceFileUploadId, amount, size) => {
@@ -110,7 +118,7 @@ class mcsSDK {
   /**
    * get filecoin status for file
    *
-   * @param {string} sourceFileUploadId
+   * @param {Number} dealId
    * @returns {Object} file status on MCS
    */
   getFileStatus = async (dealId) => {
@@ -120,7 +128,7 @@ class mcsSDK {
   /**
    * Mints file as NFT availiable to view on Opensea
    *
-   * @param {string} sourceFileUploadId
+   * @param {Number} sourceFileUploadId
    * @param {{name: string, description: string, image: string, tx_hash: string}} nft
    * @returns {Object} mint info reponse object
    */
@@ -130,7 +138,9 @@ class mcsSDK {
       this.jwt,
       this.web3,
       this.publicKey,
-      sourceFileUploadId,
+      typeof sourceFileUploadId === 'string'
+        ? sourceFileUploadId.parseInt()
+        : sourceFileUploadId,
       nft,
       generateMetadata,
     )
@@ -171,8 +181,8 @@ class mcsSDK {
   }
   /**
    *
-   * @param {string} sourceFileUploadId
-   * @param {number} dealId - dealId can be found from listUploads
+   * @param {Number} sourceFileUploadId
+   * @param {Number} dealId - dealId can be found from listUploads
    * @returns
    */
   getFileDetails = async (sourceFileUploadId, dealId) => {
