@@ -41,10 +41,10 @@ const mint = async (
   }
 
   const mintTx = await mintContract.methods
-    .mintData(payer, nft_uri)
+    .mintUnique(payer, nft_uri)
     .send(optionsObj)
 
-  const tokenId = mintTx.events.Mint.returnValues.tokenId_
+  const tokenId = mintTx.events.TransferSingle.returnValues.id
 
   const mintInfo = {
     source_file_upload_id: sourceFileUploadId,
