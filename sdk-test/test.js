@@ -1,5 +1,6 @@
 require('dotenv').config('./.env')
 const { mcsSDK } = require('../SDK/index')
+const fs = require('fs')
 
 async function main() {
   // set up js-mcs-sdk
@@ -8,10 +9,7 @@ async function main() {
     rpcUrl: 'https://polygon-rpc.com/',
   })
 
-  const testFile = JSON.stringify({
-    address: mcs.publicKey,
-    nonce: 0,
-  })
+  const testFile = fs.createReadStream('./filswan-logo.jpeg')
   const fileArray = [{ fileName: 'testFile.json', file: testFile }]
 
   console.log('uploading...')
@@ -22,9 +20,17 @@ async function main() {
   const FILE_SIZE = uploadResponse[0].data.file_size
   const MIN_AMOUNT = '0'
 
-  console.log('paying...')
-  const tx = await mcs.makePayment(SOURCE_FILE_UPLOAD_ID, MIN_AMOUNT, FILE_SIZE)
-  console.log('transaction hash: ' + tx.transactionHash)
+  try {
+    console.log('paying...')
+    const tx = await mcs.makePayment(
+      SOURCE_FILE_UPLOAD_ID,
+      MIN_AMOUNT,
+      FILE_SIZE,
+    )
+    console.log('transaction hash: ' + tx.transactionHash)
+  } catch (err) {
+    console.log(err)
+  }
 
   const IPFS_URL = uploadResponse[0].data.ipfs_url
   const NFT = {

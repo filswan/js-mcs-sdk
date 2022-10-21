@@ -1,4 +1,4 @@
-const minterABI = require('../abi/Minter.json')
+const minterABI = require('../abi/SwanNFT.json')
 const { getParams, getPaymentInfo, postMintInfo } = require('./mcsApi')
 const { mcsUpload } = require('./upload')
 
