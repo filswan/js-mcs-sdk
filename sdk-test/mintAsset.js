@@ -2,7 +2,7 @@ require('dotenv').config('./.env')
 const { mcsSDK } = require('js-mcs-sdk')
 
 async function main() {
-  const SOURCE_FILE_UPLOAD_ID = null
+  const SOURCE_FILE_UPLOAD_ID = 0
   const IPFS_URL = ''
   const NFT = {
     name: 'NFT_NAME',
