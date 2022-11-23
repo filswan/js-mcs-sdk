@@ -9,45 +9,35 @@ async function main() {
     rpcUrl: 'https://polygon-rpc.com/',
   })
 
-  const testFile = fs.createReadStream('./filswan-logo.jpeg')
-  const fileArray = [{ fileName: 'testFile.json', file: testFile }]
+  console.log(mcs.version)
+  console.log(mcs.walletAddress)
+  console.log(mcs.jwt)
 
-  console.log('uploading...')
-  const uploadResponse = await mcs.upload(fileArray)
-  console.log(uploadResponse)
+  console.log((await mcs.getDealList()).data.source_file_upload)
 
-  const SOURCE_FILE_UPLOAD_ID = uploadResponse[0].data.source_file_upload_id
-  const FILE_SIZE = uploadResponse[0].data.file_size
-  const MIN_AMOUNT = '0'
+  // const FILE_NAME = 'file1.txt'
+  // const FILE_PATH = './file1.txt'
+  // const fileArray = [
+  //   { fileName: FILE_NAME, file: fs.createReadStream(FILE_PATH) },
+  // ]
 
-  try {
-    console.log('paying...')
-    const tx = await mcs.makePayment(
-      SOURCE_FILE_UPLOAD_ID,
-      MIN_AMOUNT,
-      FILE_SIZE,
-    )
-    console.log('transaction hash: ' + tx.transactionHash)
-  } catch (err) {
-    console.log(err)
-  }
+  // const uploadResponse = await mcs.upload(fileArray)
+  // console.log(uploadResponse)
 
-  const IPFS_URL = uploadResponse[0].data.ipfs_url
-  const NFT = {
-    name: 'NFT_NAME',
-    description: '',
-    image: IPFS_URL,
-    attributes: [],
-    external_url: IPFS_URL,
-  }
+  // const payment = await mcs.makePayment('151906', '', 100)
 
-  console.log('minting...')
-  const mintResponse = await mcs.mintAsset(SOURCE_FILE_UPLOAD_ID, NFT)
-  console.log(mintResponse)
+  // const SOURCE_FILE_UPLOAD_ID = uploadResponse[0].data.source_file_upload_id
+  // const IPFS_URL = uploadResponse[0].data.ipfs_url
+  // const NFT = {
+  //   name: 'NFT_NAME',
+  //   description: '',
+  //   image: IPFS_URL,
+  //   attributes: [],
+  //   external_url: IPFS_URL,
+  // }
 
-  console.log('getting uploads...')
-  const uploads = await mcs.getUploads(mcs.publicKey, 'testFile.json')
-  console.log(uploads.data.source_file_upload)
+  // const mintResponse = await mcs.mintAsset(SOURCE_FILE_UPLOAD_ID, NFT)
+  // console.log(mintResponse)
 }
 
 main()

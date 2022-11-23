@@ -1,39 +1,29 @@
 const packageJson = require('./package.json')
 const Web3 = require('web3')
 
-const { mcsUpload } = require('./helper/upload')
-const { lockToken } = require('./helper/lockToken')
-const {
-  getFileStatus,
-  getDealList,
-  getDealDetail,
-  getAverageAmount,
-  login,
-} = require('./helper/mcsApi')
-const { mint } = require('./helper/mint')
+const { lockToken } = require('./api/makePayment')
+const { getDealDetail } = require('./api/dealDetail')
+const { mint } = require('./api/mint')
+const { login } = require('./api/login')
+const { mcsUpload } = require('./api/upload')
+const { getFileStatus } = require('./api/fileStatus')
+const { getDealList } = require('./api/dealList')
 
 const { MCS_API, STORAGE_API } = require('./helper/constants')
 
-const getApi = (chainId) => {
+const getNetwork = (chainId) => {
   if (chainId == 137) {
-    return {
-      mcsApi: MCS_API,
-      storageApi: STORAGE_API,
-      loginNetwork: 'polygon.mainnet',
-    }
+    return 'polygon.mainnet'
   } else {
     throw new Error(`Unsupported chain id (${chainId})`)
   }
 }
 
 class mcsSDK {
-  constructor(web3, publicKey, apis, jwt) {
+  constructor(web3, walletAddress, jwt) {
     this.version = packageJson.version
     this.web3 = web3
-    this.publicKey = publicKey
-
-    this.mcsApi = apis.mcsApi
-    this.storageApi = apis.storageApi
+    this.walletAddress = walletAddress
     this.jwt = jwt
   }
 
@@ -47,22 +37,22 @@ class mcsSDK {
   static async initialize({ privateKey, rpcUrl }) {
     const web3 = new Web3(rpcUrl)
     web3.eth.accounts.wallet.add(privateKey)
-    const publicKey = web3.eth.accounts.privateKeyToAccount(privateKey).address
+    const walletAddress = web3.eth.accounts.privateKeyToAccount(privateKey)
+      .address
 
     const chainId = await web3.eth.getChainId()
-    const apis = getApi(chainId)
+    const loginNetwork = getNetwork(chainId)
 
     const loginResponse = await login(
-      apis.mcsApi,
       web3,
-      publicKey,
+      walletAddress,
       privateKey,
-      apis.loginNetwork,
+      loginNetwork,
     )
 
     const jwt = loginResponse.jwt_token
 
-    return new mcsSDK(web3, publicKey, apis, jwt)
+    return new mcsSDK(web3, walletAddress, jwt)
   }
 
   /**
@@ -73,13 +63,7 @@ class mcsSDK {
    * @returns {Array} Array of upload API responses
    */
   upload = async (files, options) => {
-    return await mcsUpload(
-      this.mcsApi,
-      this.jwt,
-      this.publicKey,
-      files,
-      options,
-    )
+    return await mcsUpload(this.walletAddress, this.jwt, files, options)
   }
 
   /**
@@ -91,24 +75,12 @@ class mcsSDK {
    * @returns {Object} payment transaction response
    */
   makePayment = async (sourceFileUploadId, amount, size) => {
-    let paymentAmount = amount
-    if (paymentAmount == '0' || paymentAmount == '') {
-      paymentAmount = await getAverageAmount(
-        this.mcsApi,
-        this.storageApi,
-        this.jwt,
-        this.publicKey,
-        size,
-      )
-    }
-
     let tx = await lockToken(
-      this.mcsApi,
       this.jwt,
       this.web3,
-      this.publicKey,
+      this.walletAddress,
       sourceFileUploadId,
-      paymentAmount,
+      amount,
       size,
     )
 
@@ -122,7 +94,7 @@ class mcsSDK {
    * @returns {Object} file status on MCS
    */
   getFileStatus = async (dealId) => {
-    return await getFileStatus(this.mcsApi, this.jwt, dealId)
+    return await getFileStatus(this.jwt, dealId)
   }
 
   /**
@@ -134,10 +106,9 @@ class mcsSDK {
    */
   mintAsset = async (sourceFileUploadId, nft, generateMetadata = true) => {
     return await mint(
-      this.mcsApi,
       this.jwt,
       this.web3,
-      this.publicKey,
+      this.walletAddress,
       typeof sourceFileUploadId === 'string'
         ? sourceFileUploadId.parseInt()
         : sourceFileUploadId,
@@ -156,28 +127,9 @@ class mcsSDK {
    *
    * @returns {Array} API list reponse
    */
-  getUploads = async (
-    wallet = this.publicKey,
-    fileName = '',
-    orderBy = '',
-    isAscend = '',
-    status = '',
-    isMinted = '',
-    pageNumber = 1,
-    pageSize = 10,
-  ) => {
-    return await getDealList(
-      this.mcsApi,
-      this.jwt,
-      wallet,
-      fileName,
-      orderBy,
-      isAscend,
-      status,
-      isMinted,
-      pageNumber,
-      pageSize,
-    )
+  getDealList = async (params) => {
+    if (!params) params = { wallet: this.walletAddress }
+    return await getDealList(this.jwt, params)
   }
   /**
    *
