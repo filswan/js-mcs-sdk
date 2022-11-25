@@ -111,7 +111,6 @@ describe('MCS SDK', function () {
       })
 
       it('Should delete the new bucket', async () => {
-        console.log('id:', bucketId)
         let res = await mcs.deleteBucket(bucketId)
         expect(res.status).to.equal('success')
 

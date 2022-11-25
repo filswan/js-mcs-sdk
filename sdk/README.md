@@ -25,6 +25,13 @@ A javascript software development kit for the Multi-Chain Storage (MCS) https://
 - **GET** files by cid
 - **GET** status from filecoin
 
+Metaspace Functions:
+
+- **GET** list bucket(s)
+- **PUT** create bucket
+- **POST** upload file to bucket
+- **DELETE** delete bucket(s) and file(s)
+
 ## Prerequisites
 
 [Node.js](https://nodejs.org/en/) - v16.13.0 (npm v8.1.0) \
@@ -73,8 +80,8 @@ async function main() {
     rpcUrl: process.env.RPC_URL,
   })
 
-  const testFile = JSON.stringify({ address: mcs.publicKey })
-  const fileArray = [{ fileName: `${mcs.publicKey}.txt`, file: testFile }]
+  const testFile = JSON.stringify({ address: mcs.walletAddres })
+  const fileArray = [{ fileName: `${mcs.walletAddres}.txt`, file: testFile }]
 
   const uploadResponse = await mcs.upload(fileArray)
   console.log(uploadResponse)
@@ -85,10 +92,12 @@ main()
 
 ## Testing
 
-There are some examples in the `sdk-test` folder.
+There are some example scripts in the `sdk-test` folder. To run the examples, clone the repo, `cd` into the `sdk-test` directory, and install the necessary dependencies.
 
 ```
+git clone https://github.com/filswan/js-mcs-sdk/ .
 cd sdk-test
+npm install
 ```
 
 `node upload.js` uploads a simple file (you can edit the `FILE_NAME` and `FILE_PATH`)
@@ -97,9 +106,16 @@ cd sdk-test
 
 `node mintAsset.js` mints a file as a NFT by providing `source file upload id` and other information
 
+Alternatively, you can run the test-script to test each SDK function using mocha.js and chai.js
+(needs to have `PRIVATE_KEY` set in `.env` file.
+
+```
+mocha ./mcs.test.js -t 150000
+```
+
 ## Documentation
 
-For more examples please see the [SDK documentation](https://docs.filswan.com/multi-chain-storage/developer-quickstart/sdk/js-mcs-sdk) or the example directory in the [sdk-test repository](https://github.com/filswan/js-mcs-sdk/tree/main/sdk-test), which contains sample code for all SDK functionalities
+For more examples please see the [SDK documentation](https://docs.filswan.com/multi-chain-storage/developer-quickstart/sdk/js-mcs-sdk) or the test directory in the [sdk-test repository](https://github.com/filswan/js-mcs-sdk/tree/main/sdk-test), which contains sample code for all SDK functionalities
 
 # Contributing
 
