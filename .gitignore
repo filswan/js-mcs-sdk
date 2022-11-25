@@ -26,3 +26,4 @@ artifacts
 
 .openzeppelin
 .console_script.js
+sdk-test/dev.js

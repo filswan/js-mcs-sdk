@@ -8,6 +8,12 @@ const { login } = require('./api/login')
 const { mcsUpload } = require('./api/upload')
 const { getFileStatus } = require('./api/fileStatus')
 const { getDealList } = require('./api/dealList')
+const {
+  getBuckets,
+  createBucket,
+  deleteBucket,
+} = require('./api/metaspace/buckets')
+const { uploadToBucket } = require('./api/metaspace/files')
 
 const { MCS_API, STORAGE_API } = require('./helper/constants')
 
@@ -34,7 +40,7 @@ class mcsSDK {
    * @param {string} rpcUrl - endpoint to read and send data on the blockchain
    * @returns {Object} MCS SDK instance
    */
-  static async initialize({ privateKey, rpcUrl }) {
+  static async initialize({ privateKey, rpcUrl, jwt }) {
     const web3 = new Web3(rpcUrl)
     web3.eth.accounts.wallet.add(privateKey)
     const walletAddress = web3.eth.accounts.privateKeyToAccount(privateKey)
@@ -43,14 +49,16 @@ class mcsSDK {
     const chainId = await web3.eth.getChainId()
     const loginNetwork = getNetwork(chainId)
 
-    const loginResponse = await login(
-      web3,
-      walletAddress,
-      privateKey,
-      loginNetwork,
-    )
+    if (!jwt) {
+      const loginResponse = await login(
+        web3,
+        walletAddress,
+        privateKey,
+        loginNetwork,
+      )
 
-    const jwt = loginResponse.jwt_token
+      jwt = loginResponse.jwt_token
+    }
 
     return new mcsSDK(web3, walletAddress, jwt)
   }
@@ -138,12 +146,29 @@ class mcsSDK {
    * @returns
    */
   getFileDetails = async (sourceFileUploadId, dealId) => {
-    return await getDealDetail(
-      this.mcsApi,
-      this.jwt,
-      sourceFileUploadId,
-      dealId,
-    )
+    return await getDealDetail(this.jwt, sourceFileUploadId, dealId)
+  }
+
+  createBucket = async (bucketName) => {
+    return await createBucket(this.jwt, bucketName)
+  }
+  deleteBucket = async (bucketId) => {
+    return await deleteBucket(this.jwt, bucketId)
+  }
+
+  //aliases
+  getBucket = async (bucketName) => {
+    return await getBuckets(this.jwt, bucketName)
+  }
+  getBuckets = async (bucketName) => {
+    return await getBuckets(this.jwt, bucketName)
+  }
+  getBucketInfo = async (bucketName) => {
+    return await getBuckets(this.jwt, bucketName)
+  }
+
+  uploadToBucket = async (bucketName, fileName, filePath) => {
+    return await uploadToBucket(this.jwt, bucketName, fileName, filePath)
   }
 }
 
