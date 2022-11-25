@@ -8,11 +8,8 @@ const { login } = require('./api/login')
 const { mcsUpload } = require('./api/upload')
 const { getFileStatus } = require('./api/fileStatus')
 const { getDealList } = require('./api/dealList')
-const {
-  getBuckets,
-  createBucket,
-  deleteBucket,
-} = require('./api/metaspace/buckets')
+const { getBuckets, createBucket } = require('./api/metaspace/buckets')
+const { deleteItems } = require('./api/metaspace/delete')
 const { uploadToBucket } = require('./api/metaspace/files')
 
 const { MCS_API, STORAGE_API } = require('./helper/constants')
@@ -152,9 +149,6 @@ class mcsSDK {
   createBucket = async (bucketName) => {
     return await createBucket(this.jwt, bucketName)
   }
-  deleteBucket = async (bucketId) => {
-    return await deleteBucket(this.jwt, bucketId)
-  }
 
   //aliases
   getBucket = async (bucketName) => {
@@ -169,6 +163,25 @@ class mcsSDK {
 
   uploadToBucket = async (bucketName, fileName, filePath) => {
     return await uploadToBucket(this.jwt, bucketName, fileName, filePath)
+  }
+
+  deleteBucket = async (bucketIds) => {
+    let buckets = Array.isArray(bucketIds) ? bucketIds : [bucketIds]
+
+    return await deleteItems(this.jwt, buckets, [])
+  }
+
+  deleteFileFromBucket = async (itemIds) => {
+    let items = Array.isArray(itemIds) ? itemIds : [itemIds]
+
+    return await deleteItems(this.jwt, [], items)
+  }
+
+  deleteItems = async (buckets, items) => {
+    if (Array.isArray(buckets) && Array.isArray(items))
+      return await deleteItems(this.jwt, buckets, items)
+
+    throw new Error('invalid parameters')
   }
 }
 

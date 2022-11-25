@@ -31,23 +31,4 @@ const createBucket = async (jwt, bucketName) => {
     console.error(err)
   }
 }
-
-const deleteBucket = async (jwt, bucketId) => {
-  let deleteObject = {
-    items: [],
-    dirs: [bucketId],
-  }
-
-  const config = {
-    headers: { Authorization: `Bearer ${jwt}` },
-    data: deleteObject,
-  }
-  try {
-    const res = await axios.delete(`${METASPACE_API}object`, config)
-    return res.data
-  } catch (err) {
-    console.error(err)
-  }
-}
-
-module.exports = { getBuckets, createBucket, deleteBucket }
+module.exports = { getBuckets, createBucket }

@@ -1,10 +1,10 @@
 const { METASPACE_API } = require('../../helper/constants')
 const axios = require('axios')
 
-const deleteBucket = async (jwt, bucketId) => {
+const deleteItems = async (jwt, buckets, files) => {
   let deleteObject = {
-    items: [],
-    dirs: [bucketId],
+    items: files,
+    dirs: buckets,
   }
 
   const config = {
@@ -19,20 +19,4 @@ const deleteBucket = async (jwt, bucketId) => {
   }
 }
 
-const deleteFiles = async (jwt, bucketId) => {
-  let deleteObject = {
-    items: [],
-    dirs: [bucketId],
-  }
-
-  const config = {
-    headers: { Authorization: `Bearer ${jwt}` },
-    data: deleteObject,
-  }
-  try {
-    const res = await axios.delete(`${METASPACE_API}object`, config)
-    return res.data
-  } catch (err) {
-    console.error(err)
-  }
-}
+module.exports = { deleteItems }
