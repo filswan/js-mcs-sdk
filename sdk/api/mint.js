@@ -30,6 +30,11 @@ const postMintInfo = async (jwt, mintInfo) => {
       mintInfo,
       config,
     )
+
+    if (res?.data.status === 'error') {
+      throw new Error(res.data.message)
+    }
+
     return res?.data
   } catch (err) {
     console.error(err)

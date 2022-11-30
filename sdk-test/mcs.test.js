@@ -25,7 +25,7 @@ describe('MCS SDK', function () {
     expect(mcs)
   })
 
-  xdescribe('MCS functions', () => {
+  describe('MCS functions', () => {
     it('Should upload a file', async () => {
       const testFile = JSON.stringify({ address: mcs.walletAddress })
       const fileArray = [

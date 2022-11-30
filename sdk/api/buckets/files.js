@@ -18,6 +18,11 @@ const createUploadSession = async (jwt, bucketName, fileName, filePath) => {
   }
   try {
     const res = await axios.put(`${BUCKETS_API}file/upload`, sessionObj, config)
+
+    if (res.data.status === 'error') {
+      throw new Error(res.data.message)
+    }
+
     return res.data
   } catch (err) {
     console.error(err)
@@ -44,6 +49,11 @@ const uploadToBucket = async (jwt, bucketName, fileName, filePath) => {
       { file: fs.createReadStream(filePath) },
       config,
     )
+
+    if (res.data.status === 'error') {
+      throw new Error(res.data.message)
+    }
+
     return res.data
   } catch (err) {
     console.error(err)

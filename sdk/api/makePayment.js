@@ -14,6 +14,10 @@ const getFilePaymentStatus = async (jwt, sourceFileUploadId) => {
       `${MCS_API}storage/source_file_upload/${sourceFileUploadId}`,
       config,
     )
+    if (res?.data.status === 'error') {
+      throw new Error(res.data.message)
+    }
+
     return res?.data
   } catch (err) {
     // Handle Error Here

@@ -7,6 +7,9 @@ const getFileStatus = async (jwt, dealId) => {
   }
   try {
     const res = await axios.get(`${MCS_API}storage/deal/log/${dealId}`, config)
+    if (res?.data.status === 'error') {
+      throw new Error(res.data.message)
+    }
     return res.data
   } catch (err) {
     console.error(err)

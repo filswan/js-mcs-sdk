@@ -10,6 +10,9 @@ const getDealDetail = async (jwt, sourceFileUploadId, dealId) => {
       `${MCS_API}storage/deal/detail/${dealId}?source_file_upload_id=${sourceFileUploadId}`,
       config,
     )
+    if (res?.data.status === 'error') {
+      throw new Error(res.data.message)
+    }
     return res.data
   } catch (err) {
     console.error(err)

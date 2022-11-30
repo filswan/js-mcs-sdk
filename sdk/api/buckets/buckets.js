@@ -10,6 +10,11 @@ const getBuckets = async (jwt, bucketName) => {
       `${BUCKETS_API}directory/${bucketName ?? ''}`,
       config,
     )
+
+    if (res.data.status === 'error') {
+      throw new Error(res.data.message)
+    }
+
     return res.data
   } catch (err) {
     console.error(err)
@@ -23,9 +28,14 @@ const createBucket = async (jwt, bucketName) => {
   try {
     const res = await axios.put(
       `${BUCKETS_API}directory`,
-      { path: `/${bucketName}` },
+      { path: `/${bucketName.trim()}` },
       config,
     )
+
+    if (res.data.status === 'error') {
+      throw new Error(res.data.message)
+    }
+
     return res.data
   } catch (err) {
     console.error(err)

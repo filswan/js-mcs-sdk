@@ -13,6 +13,11 @@ const deleteItems = async (jwt, buckets, files) => {
   }
   try {
     const res = await axios.delete(`${BUCKETS_API}object`, config)
+
+    if (res.data.status === 'error') {
+      throw new Error(res.data.message)
+    }
+
     return res.data
   } catch (err) {
     console.error(err)

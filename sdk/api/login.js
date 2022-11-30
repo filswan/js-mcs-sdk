@@ -19,6 +19,9 @@ const login = async (web3, walletAddress, privateKey, network) => {
   }
 
   res = await axios.post(`${MCS_API}user/login_by_metamask_signature`, loginObj)
+  if (res?.data.status === 'error') {
+    throw new Error(res.data.message)
+  }
   return res.data.data
 }
 
