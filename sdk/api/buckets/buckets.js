@@ -1,4 +1,4 @@
-const { METASPACE_API } = require('../../helper/constants')
+const { BUCKETS_API } = require('../../helper/constants')
 const axios = require('axios')
 
 const getBuckets = async (jwt, bucketName) => {
@@ -7,7 +7,7 @@ const getBuckets = async (jwt, bucketName) => {
   }
   try {
     const res = await axios.get(
-      `${METASPACE_API}directory/${bucketName ?? ''}`,
+      `${BUCKETS_API}directory/${bucketName ?? ''}`,
       config,
     )
     return res.data
@@ -22,7 +22,7 @@ const createBucket = async (jwt, bucketName) => {
   }
   try {
     const res = await axios.put(
-      `${METASPACE_API}directory`,
+      `${BUCKETS_API}directory`,
       { path: `/${bucketName}` },
       config,
     )
@@ -31,4 +31,5 @@ const createBucket = async (jwt, bucketName) => {
     console.error(err)
   }
 }
+
 module.exports = { getBuckets, createBucket }

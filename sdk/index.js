@@ -8,11 +8,9 @@ const { login } = require('./api/login')
 const { mcsUpload } = require('./api/upload')
 const { getFileStatus } = require('./api/fileStatus')
 const { getDealList } = require('./api/dealList')
-const { getBuckets, createBucket } = require('./api/metaspace/buckets')
-const { deleteItems } = require('./api/metaspace/delete')
-const { uploadToBucket } = require('./api/metaspace/files')
-
-const { MCS_API, STORAGE_API } = require('./helper/constants')
+const { getBuckets, createBucket } = require('./api/buckets/buckets')
+const { deleteItems } = require('./api/buckets/delete')
+const { uploadToBucket } = require('./api/buckets/files')
 
 const getNetwork = (chainId) => {
   if (chainId == 137) {

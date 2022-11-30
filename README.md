@@ -25,7 +25,7 @@ A javascript software development kit for the Multi-Chain Storage (MCS) https://
 - **GET** files by cid
 - **GET** status from filecoin
 
-Metaspace Functions:
+Buckets Functions:
 
 - **GET** list bucket(s)
 - **PUT** create bucket

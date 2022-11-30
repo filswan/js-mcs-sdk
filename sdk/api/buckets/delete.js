@@ -1,4 +1,4 @@
-const { METASPACE_API } = require('../../helper/constants')
+const { BUCKETS_API } = require('../../helper/constants')
 const axios = require('axios')
 
 const deleteItems = async (jwt, buckets, files) => {
@@ -12,7 +12,7 @@ const deleteItems = async (jwt, buckets, files) => {
     data: deleteObject,
   }
   try {
-    const res = await axios.delete(`${METASPACE_API}object`, config)
+    const res = await axios.delete(`${BUCKETS_API}object`, config)
     return res.data
   } catch (err) {
     console.error(err)

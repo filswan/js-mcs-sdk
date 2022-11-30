@@ -25,7 +25,7 @@ describe('MCS SDK', function () {
     expect(mcs)
   })
 
-  describe('MCS functions', () => {
+  xdescribe('MCS functions', () => {
     it('Should upload a file', async () => {
       const testFile = JSON.stringify({ address: mcs.walletAddress })
       const fileArray = [
@@ -83,7 +83,7 @@ describe('MCS SDK', function () {
     })
   })
 
-  describe('Metaspace functions', () => {
+  describe('Buckets functions', () => {
     let bucketId
     describe('Buckets', () => {
       it('Should remove any bucket', async () => {
