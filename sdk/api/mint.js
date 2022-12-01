@@ -1,9 +1,51 @@
 const minterABI = require('../abi/SwanNFT.json')
-const { getParams, getPaymentInfo, postMintInfo } = require('./mcsApi')
+const axios = require('axios')
+const { MCS_API } = require('../helper/constants')
 const { mcsUpload } = require('./upload')
+const { getParams } = require('../helper/params')
+
+const getPaymentInfo = async (jwt, sourceFileUploadId) => {
+  const config = {
+    headers: { Authorization: `Bearer ${jwt}` },
+  }
+  try {
+    const res = await axios.get(
+      `${MCS_API}billing/deal/lockpayment/info?source_file_upload_id=${sourceFileUploadId}`,
+      config,
+    )
+    return res?.data
+  } catch (err) {
+    // Handle Error Here
+    console.error(err)
+  }
+}
+
+const postMintInfo = async (jwt, mintInfo) => {
+  const config = {
+    headers: { Authorization: `Bearer ${jwt}` },
+  }
+  try {
+    const res = await axios.post(
+      `${MCS_API}storage/mint/info`,
+      mintInfo,
+      config,
+    )
+
+    if (res?.data.status === 'error') {
+      throw new Error(res.data.message)
+    }
+
+    return res?.data
+  } catch (err) {
+    if (err.response?.data?.status === 'error') {
+      console.error(err.response.data?.message)
+    } else {
+      console.error(err)
+    }
+  }
+}
 
 const mint = async (
-  mcsApi,
   jwt,
   web3,
   payer,
@@ -14,15 +56,14 @@ const mint = async (
   let nft_uri = nftObj // if user did not wish to generate metadata
 
   if (generateMetadata) {
-    const paymentInfo = await getPaymentInfo(mcsApi, jwt, sourceFileUploadId)
+    const paymentInfo = await getPaymentInfo(jwt, sourceFileUploadId)
     const txHash = paymentInfo?.data?.tx_hash || ''
 
     let nft = { ...nftObj, tx_hash: txHash }
 
     const uploadResponse = await mcsUpload(
-      mcsApi,
-      jwt,
       payer,
+      jwt,
       [{ fileName: nft.name, file: JSON.stringify(nft) }],
       { fileType: 1 },
     )
@@ -30,7 +71,7 @@ const mint = async (
     nft_uri = uploadResponse.pop().data.ipfs_url
   }
 
-  const params = await getParams(mcsApi)
+  const params = await getParams()
   const mintAddress = params.mint_contract_address
   const mintContract = new web3.eth.Contract(minterABI, mintAddress)
 
@@ -53,7 +94,7 @@ const mint = async (
     mint_address: mintAddress,
   }
 
-  const mintInfoResponse = await postMintInfo(mcsApi, jwt, mintInfo)
+  const mintInfoResponse = await postMintInfo(jwt, mintInfo)
 
   return mintInfoResponse
 }
