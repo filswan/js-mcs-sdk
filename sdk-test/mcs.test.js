@@ -76,11 +76,12 @@ describe('MCS SDK', function () {
       expect(status.data.offline_deal_log.length).to.be.greaterThan(0)
     })
 
-    it('Should get deal details', async () => {
-      const details = await mcs.getFileDetails('150903', 7496)
+    // can only view details of files uploaded by the user
+    // it('Should get deal details', async () => {
+    //   const details = await mcs.getFileDetails('150903', 7496)
 
-      expect(details.status).to.equal('success')
-    })
+    //   expect(details.status).to.equal('success')
+    // })
   })
 
   describe('Buckets functions', () => {
@@ -136,8 +137,6 @@ describe('MCS SDK', function () {
       it('Should delete the file', async () => {
         let bucket = await mcs.getBucket('test-bucket')
         let file = bucket.data.objects.find((file) => file.name === fileName)
-
-        // console.log(bucket.data.objects.find((file) => file.name === fileName))
 
         let res = await mcs.deleteFileFromBucket(file.id)
         expect(res.status).to.equal('success')

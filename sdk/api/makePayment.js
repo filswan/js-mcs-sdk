@@ -20,8 +20,11 @@ const getFilePaymentStatus = async (jwt, sourceFileUploadId) => {
 
     return res?.data
   } catch (err) {
-    // Handle Error Here
-    console.error(err)
+    if (err.response?.data?.status === 'error') {
+      console.error(err.response.data?.message)
+    } else {
+      console.error(err)
+    }
   }
 }
 

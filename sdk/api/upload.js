@@ -55,7 +55,11 @@ const mcsUpload = async (address, jwt, files, options) => {
     const result = await Promise.all(requests) // wait for all uploads
     return result
   } catch (err) {
-    console.log(err.response?.data || err)
+    if (err.response?.data?.status === 'error') {
+      console.error(err.response.data?.message)
+    } else {
+      console.error(err)
+    }
   }
 }
 

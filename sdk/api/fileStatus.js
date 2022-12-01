@@ -12,7 +12,11 @@ const getFileStatus = async (jwt, dealId) => {
     }
     return res.data
   } catch (err) {
-    console.error(err)
+    if (err.response?.data?.status === 'error') {
+      console.error(err.response.data?.message)
+    } else {
+      console.error(err)
+    }
   }
 }
 
