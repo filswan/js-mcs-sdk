@@ -2,6 +2,7 @@ const { BUCKETS_API } = require('../../helper/constants')
 const { getBuckets } = require('./buckets')
 const axios = require('axios')
 const fs = require('fs')
+const { open } = require('fs').promises
 
 const createUploadSession = async (jwt, bucketName, fileName, filePath) => {
   const bucketInfo = await getBuckets(jwt, bucketName)
@@ -46,7 +47,7 @@ const uploadToBucket = async (jwt, bucketName, fileName, filePath) => {
 
     const res = await axios.post(
       `${BUCKETS_API}file/upload/${session.data.sessionID}/0`,
-      { file: fs.createReadStream(filePath) },
+      fs.createReadStream(filePath),
       config,
     )
 

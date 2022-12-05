@@ -52,7 +52,7 @@ describe('MCS SDK', function () {
       ).to.be.rejectedWith(Error)
     })
 
-    xit('Should mint NFT', async () => {
+    it('Should mint NFT', async () => {
       let metadata = {
         name: 'test NFT',
         image: ipfsUrl,
