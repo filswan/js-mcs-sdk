@@ -52,7 +52,7 @@ describe('MCS SDK', function () {
       ).to.be.rejectedWith(Error)
     })
 
-    it('Should mint NFT', async () => {
+    xit('Should mint NFT', async () => {
       let metadata = {
         name: 'test NFT',
         image: ipfsUrl,
@@ -108,6 +108,7 @@ describe('MCS SDK', function () {
         let bucket = await mcs.getBucket('test-bucket')
         bucketId = bucket.data.parent
 
+        expect(bucketId).to.equal(await mcs.getBucketId('test-bucket'))
         expect(bucket.status).to.equal('success')
       })
 
@@ -137,6 +138,8 @@ describe('MCS SDK', function () {
       it('Should delete the file', async () => {
         let bucket = await mcs.getBucket('test-bucket')
         let file = bucket.data.objects.find((file) => file.name === fileName)
+
+        expect(file.id).to.equal(await mcs.getFileId('test-bucket', fileName))
 
         let res = await mcs.deleteFileFromBucket(file.id)
         expect(res.status).to.equal('success')

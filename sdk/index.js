@@ -181,6 +181,16 @@ class mcsSDK {
 
     throw new Error('invalid parameters')
   }
+
+  getBucketId = async (bucketName) => {
+    return (await this.getBucket(bucketName)).data.parent
+  }
+
+  getFileId = async (bucketName, fileName) => {
+    let files = (await this.getBucket(bucketName)).data.objects
+    let file = files.find((f) => f.name == fileName)
+    return file.id
+  }
 }
 
 module.exports = { mcsSDK }
