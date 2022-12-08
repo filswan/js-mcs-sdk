@@ -1,20 +1,20 @@
-const packageJson = require('./package.json')
-const Web3 = require('web3')
+const packageJson = require("./package.json")
+const Web3 = require("web3")
 
-const { lockToken } = require('./api/makePayment')
-const { getDealDetail } = require('./api/dealDetail')
-const { mint } = require('./api/mint')
-const { login } = require('./api/login')
-const { mcsUpload } = require('./api/upload')
-const { getFileStatus } = require('./api/fileStatus')
-const { getDealList } = require('./api/dealList')
-const { getBuckets, createBucket } = require('./api/buckets/buckets')
-const { deleteItems } = require('./api/buckets/delete')
-const { uploadToBucket } = require('./api/buckets/files')
+const { lockToken } = require("./api/makePayment")
+const { getDealDetail } = require("./api/dealDetail")
+const { mint } = require("./api/mint")
+const { login } = require("./api/login")
+const { mcsUpload } = require("./api/upload")
+const { getFileStatus } = require("./api/fileStatus")
+const { getDealList } = require("./api/dealList")
+const { getBuckets, createBucket } = require("./api/buckets/buckets")
+const { deleteItems } = require("./api/buckets/delete")
+const { uploadToBucket, downloadFile } = require("./api/buckets/files")
 
 const getNetwork = (chainId) => {
   if (chainId == 137) {
-    return 'polygon.mainnet'
+    return "polygon.mainnet"
   } else {
     throw new Error(`Unsupported chain id (${chainId})`)
   }
@@ -38,8 +38,8 @@ class mcsSDK {
   static async initialize({ privateKey, rpcUrl, jwt }) {
     const web3 = new Web3(rpcUrl)
     web3.eth.accounts.wallet.add(privateKey)
-    const walletAddress = web3.eth.accounts.privateKeyToAccount(privateKey)
-      .address
+    const walletAddress =
+      web3.eth.accounts.privateKeyToAccount(privateKey).address
 
     const chainId = await web3.eth.getChainId()
     const loginNetwork = getNetwork(chainId)
@@ -49,7 +49,7 @@ class mcsSDK {
         web3,
         walletAddress,
         privateKey,
-        loginNetwork,
+        loginNetwork
       )
 
       jwt = loginResponse.jwt_token
@@ -84,7 +84,7 @@ class mcsSDK {
       this.walletAddress,
       sourceFileUploadId,
       amount,
-      size,
+      size
     )
 
     return tx
@@ -112,11 +112,11 @@ class mcsSDK {
       this.jwt,
       this.web3,
       this.walletAddress,
-      typeof sourceFileUploadId === 'string'
+      typeof sourceFileUploadId === "string"
         ? sourceFileUploadId.parseInt()
         : sourceFileUploadId,
       nft,
-      generateMetadata,
+      generateMetadata
     )
   }
 
@@ -163,6 +163,10 @@ class mcsSDK {
     return await uploadToBucket(this.jwt, bucketName, fileName, filePath)
   }
 
+  downloadFile = async (bucketName, fileName, outputDirectory = ".") => {
+    return await downloadFile(this.jwt, bucketName, fileName, outputDirectory)
+  }
+
   deleteBucket = async (bucketIds) => {
     let buckets = Array.isArray(bucketIds) ? bucketIds : [bucketIds]
 
@@ -179,7 +183,7 @@ class mcsSDK {
     if (Array.isArray(buckets) && Array.isArray(items))
       return await deleteItems(this.jwt, buckets, items)
 
-    throw new Error('invalid parameters')
+    throw new Error("invalid parameters")
   }
 
   getBucketId = async (bucketName) => {
