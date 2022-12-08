@@ -2,7 +2,7 @@ const { BUCKETS_API } = require('../../helper/constants')
 const { getBuckets } = require('./buckets')
 const axios = require('axios')
 const fs = require('fs')
-const { open } = require('fs').promises
+const { Agent } = require('https')
 
 const createUploadSession = async (jwt, bucketName, fileName, filePath) => {
   const bucketInfo = await getBuckets(jwt, bucketName)
@@ -33,6 +33,10 @@ const createUploadSession = async (jwt, bucketName, fileName, filePath) => {
 const uploadToBucket = async (jwt, bucketName, fileName, filePath) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
+    maxContentLength: Infinity,
+    maxBodyLength: Infinity,
+    maxRedirects: 0,
+    agent: new Agent({ rejectUnauthorized: false }),
   }
 
   try {
