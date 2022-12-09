@@ -31,6 +31,7 @@ Buckets Functions:
 - **GET** list bucket(s)
 - **PUT** create bucket
 - **POST** upload file to bucket
+- **GET** download file from bucket
 - **DELETE** delete bucket(s) and file(s)
 
 # Prerequisites
@@ -161,6 +162,14 @@ Uploading a file to a bucket is similar to MCS. However 2 files cannot have the 
 ```js
 await mcs.uploadToBucket(<bucketName>, <fileName>, <filePath>)
 await mcs.deleteFileFromBucket(<fileId>)
+```
+
+### Download Files
+
+After uploading a file to a Bucket, it is possible to retreive the file using the Bucket name and file name. The `outputDirectory` is optional and defaults to the current directory.
+
+```js
+await mcs.downloadFile(<bucketName>, <fileName>, <outputDirectory>)
 ```
 
 # Testing

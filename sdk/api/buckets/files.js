@@ -1,9 +1,9 @@
-const { BUCKETS_API } = require("../../helper/constants")
-const { getBuckets } = require("./buckets")
-const axios = require("axios")
-const fs = require("fs")
-const { Agent } = require("https")
-const { request } = require("urllib")
+const { BUCKETS_API } = require('../../helper/constants')
+const { getBuckets } = require('./buckets')
+const axios = require('axios')
+const fs = require('fs')
+const { Agent } = require('https')
+const { request } = require('urllib')
 
 const createUploadSession = async (jwt, bucketName, fileName, filePath) => {
   const bucketInfo = await getBuckets(jwt, bucketName)
@@ -21,7 +21,7 @@ const createUploadSession = async (jwt, bucketName, fileName, filePath) => {
   try {
     const res = await axios.put(`${BUCKETS_API}file/upload`, sessionObj, config)
 
-    if (res.data.status === "error") {
+    if (res.data.status === 'error') {
       throw new Error(res.data.message)
     }
 
@@ -48,7 +48,7 @@ const uploadToBucket = async (jwt, bucketName, fileName, filePath) => {
       filePath
     )
 
-    if (session.status == "error") throw new Error(session.message)
+    if (session.status == 'error') throw new Error(session.message)
 
     const res = await axios.post(
       `${BUCKETS_API}file/upload/${session.data.sessionID}/0`,
@@ -56,7 +56,7 @@ const uploadToBucket = async (jwt, bucketName, fileName, filePath) => {
       config
     )
 
-    if (res.data.status === "error") {
+    if (res.data.status === 'error') {
       throw new Error(res.data.message)
     }
 
@@ -74,12 +74,12 @@ const downloadFile = async (jwt, bucketName, fileName, outputDirectory) => {
     let file = files.find((f) => f.name == fileName)
 
     if (!file) {
-      throw new Error("file not found")
+      throw new Error('file not found')
     }
 
-    let name = outputDirectory.endsWith("/")
-      ? outputDirectory + file.ipfs_url?.split("?filename=").pop()
-      : outputDirectory + "/" + file.ipfs_url?.split("?filename=").pop()
+    let name = outputDirectory.endsWith('/')
+      ? outputDirectory + file.ipfs_url?.split('?filename=').pop()
+      : outputDirectory + '/' + file.ipfs_url?.split('?filename=').pop()
 
     let res = await request(file.ipfs_url)
     await fs.promises.writeFile(name, res.data, (err) => {

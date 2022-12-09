@@ -3,6 +3,7 @@ const mocha = require('mocha')
 const chai = require('chai')
 chai.use(require('chai-as-promised'))
 const expect = chai.expect
+const fs = require('fs').promises
 
 // Importing fareutils.js where our code is written
 const { mcsSDK } = require('../SDK/index')
@@ -44,11 +45,11 @@ describe('MCS SDK', function () {
       let paymentResponse = mcs.makePayment(
         sourceFileUploadId,
         '0.000002',
-        size,
+        size
       )
 
       await expect(
-        mcs.makePayment(sourceFileUploadId, '0.000002', size),
+        mcs.makePayment(sourceFileUploadId, '0.000002', size)
       ).to.be.rejectedWith(Error)
     })
 
@@ -66,7 +67,7 @@ describe('MCS SDK', function () {
       const uploads = await mcs.getDealList()
 
       expect(uploads.data.source_file_upload[0].source_file_upload_id).to.equal(
-        sourceFileUploadId,
+        sourceFileUploadId
       )
     })
 
@@ -130,9 +131,33 @@ describe('MCS SDK', function () {
         let upload = await mcs.uploadToBucket(
           'test-bucket',
           fileName,
-          './file1.txt',
+          './file1.txt'
         )
         expect(upload.status).to.equal('success')
+      })
+
+      it('Should download a file from bucket', async () => {
+        await mcs.downloadFile('test-bucket', fileName, './download')
+
+        try {
+          const data = await fs.readFile(`./download/${fileName}`, 'utf8')
+          expect(data).to.equal('Hello, World!')
+        } catch (err) {
+          console.error(err)
+        }
+      })
+
+      it('Should not allow download of non existing file', async () => {
+        expect(
+          mcs.downloadFile('test-bucket', 'nonexisting_file', './download')
+        ).to.eventually.be.throw('file not found')
+
+        // try {
+        //   const data = await fs.readFile(`./download/${fileName}`, 'utf8')
+        //   expect(data).to.equal('Hello, World!')
+        // } catch (err) {
+        //   console.error(err)
+        // }
       })
 
       it('Should delete the file', async () => {
