@@ -41,16 +41,8 @@ describe('MCS SDK', function () {
       expect(uploadResponse[0].status).to.equal('success')
     })
 
-    it('Should not allow payment for a free file', async () => {
-      let paymentResponse = mcs.makePayment(
-        sourceFileUploadId,
-        '0.000002',
-        size
-      )
-
-      await expect(
-        mcs.makePayment(sourceFileUploadId, '0.000002', size)
-      ).to.be.rejectedWith(Error)
+    it('Should pay for file', async () => {
+      await mcs.makePayment(sourceFileUploadId, '', size)
     })
 
     it('Should mint NFT', async () => {
@@ -67,7 +59,7 @@ describe('MCS SDK', function () {
       const uploads = await mcs.getDealList()
 
       expect(uploads.data.source_file_upload[0].source_file_upload_id).to.equal(
-        sourceFileUploadId
+        sourceFileUploadId,
       )
     })
 
@@ -131,7 +123,7 @@ describe('MCS SDK', function () {
         let upload = await mcs.uploadToBucket(
           'test-bucket',
           fileName,
-          './file1.txt'
+          './file1.txt',
         )
         expect(upload.status).to.equal('success')
       })
@@ -149,7 +141,7 @@ describe('MCS SDK', function () {
 
       it('Should not allow download of non existing file', async () => {
         expect(
-          mcs.downloadFile('test-bucket', 'nonexisting_file', './download')
+          mcs.downloadFile('test-bucket', 'nonexisting_file', './download'),
         ).to.eventually.be.throw('file not found')
 
         // try {
