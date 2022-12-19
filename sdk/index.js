@@ -10,6 +10,7 @@ const { getDealList } = require('./api/dealList')
 const { getBuckets, createBucket } = require('./api/buckets/buckets')
 const { deleteItems } = require('./api/buckets/delete')
 const { uploadToBucket, downloadFile } = require('./api/buckets/files')
+const { getJwt } = require('./helper/getJwt')
 
 const getNetwork = (chainId) => {
   if (chainId == 137) {
@@ -22,12 +23,13 @@ const getNetwork = (chainId) => {
 }
 
 class mcsSDK {
-  constructor(web3, walletAddress, accessToken, apiKey) {
+  constructor(web3, walletAddress, accessToken, apiKey, jwt) {
     this.version = packageJson.version
     this.web3 = web3
     this.walletAddress = walletAddress
     this.accessToken = accessToken
     this.apiKey = apiKey
+    this.jwt = jwt
   }
 
   /**
@@ -45,7 +47,12 @@ class mcsSDK {
       walletAddress = web3.eth.accounts.privateKeyToAccount(privateKey).address
     }
 
-    return new mcsSDK(web3, walletAddress, accessToken, apiKey)
+    const chainId = await web3.eth.getChainId()
+    const loginNetwork = getNetwork(chainId)
+
+    let jwt = await getJwt(accessToken, apiKey, loginNetwork)
+
+    return new mcsSDK(web3, walletAddress, accessToken, apiKey, jwt.jwt_token)
   }
 
   addPrivateKey(privateKey) {
