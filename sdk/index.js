@@ -1,31 +1,33 @@
-const packageJson = require("./package.json")
-const Web3 = require("web3")
+const packageJson = require('./package.json')
+const Web3 = require('web3')
 
-const { lockToken } = require("./api/makePayment")
-const { getDealDetail } = require("./api/dealDetail")
-const { mint } = require("./api/mint")
-const { login } = require("./api/login")
-const { mcsUpload } = require("./api/upload")
-const { getFileStatus } = require("./api/fileStatus")
-const { getDealList } = require("./api/dealList")
-const { getBuckets, createBucket } = require("./api/buckets/buckets")
-const { deleteItems } = require("./api/buckets/delete")
-const { uploadToBucket, downloadFile } = require("./api/buckets/files")
+const { lockToken } = require('./api/makePayment')
+const { getDealDetail } = require('./api/dealDetail')
+const { mint } = require('./api/mint')
+const { mcsUpload } = require('./api/upload')
+const { getFileStatus } = require('./api/fileStatus')
+const { getDealList } = require('./api/dealList')
+const { getBuckets, createBucket } = require('./api/buckets/buckets')
+const { deleteItems } = require('./api/buckets/delete')
+const { uploadToBucket, downloadFile } = require('./api/buckets/files')
 
 const getNetwork = (chainId) => {
   if (chainId == 137) {
-    return "polygon.mainnet"
+    return 'polygon.mainnet'
+  } else if (chainId == 80001) {
+    return 'polygon.mumbai'
   } else {
     throw new Error(`Unsupported chain id (${chainId})`)
   }
 }
 
 class mcsSDK {
-  constructor(web3, walletAddress, jwt) {
+  constructor(web3, walletAddress, accessToken, apiKey) {
     this.version = packageJson.version
     this.web3 = web3
     this.walletAddress = walletAddress
-    this.jwt = jwt
+    this.accessToken = accessToken
+    this.apiKey = apiKey
   }
 
   /**
@@ -35,27 +37,22 @@ class mcsSDK {
    * @param {string} rpcUrl - endpoint to read and send data on the blockchain
    * @returns {Object} MCS SDK instance
    */
-  static async initialize({ privateKey, rpcUrl, jwt }) {
-    const web3 = new Web3(rpcUrl)
-    web3.eth.accounts.wallet.add(privateKey)
-    const walletAddress =
-      web3.eth.accounts.privateKeyToAccount(privateKey).address
-
-    const chainId = await web3.eth.getChainId()
-    const loginNetwork = getNetwork(chainId)
-
-    if (!jwt) {
-      const loginResponse = await login(
-        web3,
-        walletAddress,
-        privateKey,
-        loginNetwork
-      )
-
-      jwt = loginResponse.jwt_token
+  static async initialize({ privateKey, rpcUrl, accessToken, apiKey }) {
+    const web3 = new Web3(rpcUrl || 'https://polygon-rpc.com/')
+    let walletAddress
+    if (privateKey) {
+      web3.eth.accounts.wallet.add(privateKey)
+      walletAddress = web3.eth.accounts.privateKeyToAccount(privateKey).address
     }
 
-    return new mcsSDK(web3, walletAddress, jwt)
+    return new mcsSDK(web3, walletAddress, accessToken, apiKey)
+  }
+
+  addPrivateKey(privateKey) {
+    web3.eth.accounts.wallet.add(privateKey)
+    this.walletAddress = web3.eth.accounts.privateKeyToAccount(
+      privateKey,
+    ).address
   }
 
   /**
@@ -84,7 +81,7 @@ class mcsSDK {
       this.walletAddress,
       sourceFileUploadId,
       amount,
-      size
+      size,
     )
 
     return tx
@@ -112,11 +109,11 @@ class mcsSDK {
       this.jwt,
       this.web3,
       this.walletAddress,
-      typeof sourceFileUploadId === "string"
+      typeof sourceFileUploadId === 'string'
         ? sourceFileUploadId.parseInt()
         : sourceFileUploadId,
       nft,
-      generateMetadata
+      generateMetadata,
     )
   }
 
@@ -163,7 +160,7 @@ class mcsSDK {
     return await uploadToBucket(this.jwt, bucketName, fileName, filePath)
   }
 
-  downloadFile = async (bucketName, fileName, outputDirectory = ".") => {
+  downloadFile = async (bucketName, fileName, outputDirectory = '.') => {
     return await downloadFile(this.jwt, bucketName, fileName, outputDirectory)
   }
 
@@ -183,7 +180,7 @@ class mcsSDK {
     if (Array.isArray(buckets) && Array.isArray(items))
       return await deleteItems(this.jwt, buckets, items)
 
-    throw new Error("invalid parameters")
+    throw new Error('invalid parameters')
   }
 
   getBucketId = async (bucketName) => {

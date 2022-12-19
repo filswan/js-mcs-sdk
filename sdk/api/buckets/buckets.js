@@ -7,7 +7,7 @@ const getBuckets = async (jwt, bucketName) => {
   }
   try {
     const res = await axios.get(
-      `${BUCKETS_API}directory/${bucketName ?? ''}`,
+      `${BUCKETS_API}bucket/get_bucket_list/${bucketName ?? ''}`,
       config,
     )
 
@@ -25,10 +25,11 @@ const createBucket = async (jwt, bucketName) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
   }
+
   try {
-    const res = await axios.put(
-      `${BUCKETS_API}directory`,
-      { path: `/${bucketName.trim()}` },
+    const res = await axios.post(
+      `${BUCKETS_API}bucket/create/`,
+      { bucket_name: `${bucketName.trim()}` },
       config,
     )
 
