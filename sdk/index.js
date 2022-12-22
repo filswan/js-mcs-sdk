@@ -7,9 +7,19 @@ const { mint } = require('./api/mint')
 const { mcsUpload } = require('./api/upload')
 const { getFileStatus } = require('./api/fileStatus')
 const { getDealList } = require('./api/dealList')
-const { getBuckets, createBucket } = require('./api/buckets/buckets')
-const { deleteItems } = require('./api/buckets/delete')
-const { uploadToBucket, downloadFile } = require('./api/buckets/files')
+const {
+  getBuckets,
+  createBucket,
+  deleteBucket,
+} = require('./api/buckets/buckets')
+const {
+  uploadToBucket,
+  downloadFile,
+  getFileList,
+  getFileInfo,
+  deleteFile,
+  createFolder,
+} = require('./api/buckets/files')
 const { getJwt } = require('./helper/getJwt')
 
 const getNetwork = (chainId) => {
@@ -39,7 +49,7 @@ class mcsSDK {
    * @param {string} rpcUrl - endpoint to read and send data on the blockchain
    * @returns {Object} MCS SDK instance
    */
-  static async initialize({ privateKey, rpcUrl, accessToken, apiKey }) {
+  static async initialize({ privateKey, rpcUrl, accessToken, apiKey, jwt }) {
     const web3 = new Web3(rpcUrl || 'https://polygon-rpc.com/')
     let walletAddress
     if (privateKey) {
@@ -50,14 +60,16 @@ class mcsSDK {
     const chainId = await web3.eth.getChainId()
     const loginNetwork = getNetwork(chainId)
 
-    let jwt = await getJwt(accessToken, apiKey, loginNetwork)
+    if (!jwt) {
+      jwt = (await getJwt(accessToken, apiKey, loginNetwork)).jwt_token
+    }
 
-    return new mcsSDK(web3, walletAddress, accessToken, apiKey, jwt.jwt_token)
+    return new mcsSDK(web3, walletAddress, accessToken, apiKey, jwt)
   }
 
   addPrivateKey(privateKey) {
-    web3.eth.accounts.wallet.add(privateKey)
-    this.walletAddress = web3.eth.accounts.privateKeyToAccount(
+    this.web3.eth.accounts.wallet.add(privateKey)
+    this.walletAddress = this.web3.eth.accounts.privateKeyToAccount(
       privateKey,
     ).address
   }
@@ -152,52 +164,86 @@ class mcsSDK {
     return await createBucket(this.jwt, bucketName)
   }
 
-  //aliases
-  getBucket = async (bucketName) => {
-    return await getBuckets(this.jwt, bucketName)
-  }
-  getBuckets = async (bucketName) => {
-    return await getBuckets(this.jwt, bucketName)
-  }
-  getBucketInfo = async (bucketName) => {
-    return await getBuckets(this.jwt, bucketName)
+  // //aliases
+  // getBucket = async (bucketName) => {
+  //   return await getBuckets(this.jwt, bucketName)
+  // }
+  getBuckets = async () => {
+    return await getBuckets(this.jwt)
   }
 
-  uploadToBucket = async (bucketName, fileName, filePath) => {
-    return await uploadToBucket(this.jwt, bucketName, fileName, filePath)
+  getBucketList = async () => {
+    return await getBuckets(this.jwt)
+  }
+  // getBucketInfo = async (bucketName) => {
+  //   return await getBuckets(this.jwt, bucketName)
+  // }
+
+  deleteBucket = async (bucketUid) => {
+    return await deleteBucket(this.jwt, bucketUid)
+  }
+
+  getFileList = async (bucketUid, params) => {
+    if (!params) params = { prefix: '', limit: 10, offset: 0 }
+    let prefix = params.prefix || ''
+    let limit = params.limit || 10
+    let offset = params.offset || 0
+
+    // console.log('params:', { prefix, limit, offset })
+    let list = await getFileList(this.jwt, bucketUid, {
+      prefix,
+      limit,
+      offset,
+    })
+
+    return list.data
+  }
+
+  getFiles = async (bucketUid, params) => {
+    if (!params) params = { prefix: '', limit: 10, offset: 0 }
+    let prefix = params.prefix || ''
+    let limit = params.limit || 10
+    let offset = params.offset || 0
+
+    // console.log('params:', { prefix, limit, offset })
+    let list = await getFileList(this.jwt, bucketUid, {
+      prefix,
+      limit,
+      offset,
+    })
+
+    return list.data
+  }
+
+  getFileInfo = async (fileId) => {
+    return await getFileInfo(this.jwt, fileId)
+  }
+
+  deleteFile = async (fileId) => {
+    return await deleteFile(this.jwt, fileId)
+  }
+
+  createFolder = async (bucketUid, folderName, prefix = '') => {
+    return await createFolder(this.jwt, bucketUid, folderName, prefix)
+  }
+
+  uploadToBucket = async (
+    filePath,
+    bucketUid,
+    folder,
+    options = { log: false },
+  ) => {
+    return await uploadToBucket(
+      this.jwt,
+      filePath,
+      bucketUid,
+      folder,
+      options.log ?? false,
+    )
   }
 
   downloadFile = async (bucketName, fileName, outputDirectory = '.') => {
     return await downloadFile(this.jwt, bucketName, fileName, outputDirectory)
-  }
-
-  deleteBucket = async (bucketIds) => {
-    let buckets = Array.isArray(bucketIds) ? bucketIds : [bucketIds]
-
-    return await deleteItems(this.jwt, buckets, [])
-  }
-
-  deleteFileFromBucket = async (itemIds) => {
-    let items = Array.isArray(itemIds) ? itemIds : [itemIds]
-
-    return await deleteItems(this.jwt, [], items)
-  }
-
-  deleteItems = async (buckets, items) => {
-    if (Array.isArray(buckets) && Array.isArray(items))
-      return await deleteItems(this.jwt, buckets, items)
-
-    throw new Error('invalid parameters')
-  }
-
-  getBucketId = async (bucketName) => {
-    return (await this.getBucket(bucketName)).data.parent
-  }
-
-  getFileId = async (bucketName, fileName) => {
-    let files = (await this.getBucket(bucketName)).data.objects
-    let file = files.find((f) => f.name == fileName)
-    return file.id
   }
 }
 
