@@ -122,22 +122,19 @@ const uploadToBucket = async (jwt, filePath, bucketUid, folder, log) => {
   return res
 }
 
-const downloadFile = async (jwt, bucketName, fileName, outputDirectory) => {
+const downloadFile = async (jwt, fileId, outputDirectory) => {
   try {
-    let bucketInfo = await getBuckets(jwt, bucketName)
-    let files = bucketInfo.data?.objects
-
-    let file = files.find((f) => f.name == fileName)
+    let file = await getFileInfo(jwt, fileId)
 
     if (!file) {
       throw new Error('file not found')
     }
 
     let name = outputDirectory.endsWith('/')
-      ? outputDirectory + file.ipfs_url?.split('?filename=').pop()
-      : outputDirectory + '/' + file.ipfs_url?.split('?filename=').pop()
+      ? outputDirectory + file.data.Name
+      : outputDirectory + '/' + file.data.Name
 
-    let res = await request(file.ipfs_url)
+    let res = await request(file.data.IpfsUrl)
     await fs.promises.writeFile(name, res.data, (err) => {
       if (err) {
         console.error(err)
@@ -182,6 +179,10 @@ const getFileInfo = async (jwt, fileId) => {
 }
 
 const deleteFile = async (jwt, fileId) => {
+  const config = {
+    headers: { Authorization: `Bearer ${jwt}` },
+  }
+
   try {
     const res = await axios.get(
       `${BUCKETS_API}oss_file/delete?file_id=${fileId}`,
