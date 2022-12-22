@@ -20,13 +20,14 @@ describe('MCS SDK', function () {
   it('Should initialize SDK', async () => {
     mcs = await mcsSDK.initialize({
       privateKey: process.env.PRIVATE_KEY,
-      rpcUrl: 'https://polygon-rpc.com/',
+      //rpcUrl: 'https://polygon-rpc.com/',
+      jwt: process.env.JWT,
     })
 
     expect(mcs)
   })
 
-  describe('MCS functions', () => {
+  xdescribe('MCS functions', () => {
     it('Should upload a file', async () => {
       const testFile = JSON.stringify({ address: mcs.walletAddress })
       const fileArray = [
@@ -78,91 +79,78 @@ describe('MCS SDK', function () {
   })
 
   describe('Buckets functions', () => {
-    let bucketId
+    let bucketUid
     describe('Buckets', () => {
-      it('Should remove any bucket', async () => {
+      it('Should remove test-bucket', async () => {
         let buckets = await mcs.getBuckets()
-        let id = buckets.data.objects[0]?.id
+        let testBucket = buckets.data.find(
+          (b) => b.BucketName === 'test-bucket',
+        )
 
-        if (id) await mcs.deleteBucket(id)
+        if (testBucket) {
+          await mcs.deleteBucket(testBucket.BucketUid)
+        }
+
+        buckets = await mcs.getBuckets()
+        testBucket = buckets.data.find((b) => b.BucketName === 'test-bucket')
+
+        expect(testBucket).to.be.undefined
       })
       it('Should create a new bucket', async () => {
         let bucket = await mcs.createBucket('test-bucket')
+
+        bucketUid = bucket.data
 
         expect(bucket.status).to.equal('success')
       })
       it('Should get all buckets', async () => {
         let buckets = await mcs.getBuckets()
 
-        expect(buckets.data.objects.length).to.be.greaterThan(0)
-      })
-
-      it('Should get the new bucket', async () => {
-        let bucket = await mcs.getBucket('test-bucket')
-        bucketId = bucket.data.parent
-
-        expect(bucketId).to.equal(await mcs.getBucketId('test-bucket'))
-        expect(bucket.status).to.equal('success')
-      })
-
-      it('Should delete the new bucket', async () => {
-        let res = await mcs.deleteBucket(bucketId)
-        expect(res.status).to.equal('success')
-
-        let bucket = await mcs.getBuckets()
-        expect(bucket.data.objects.length).to.equal(0)
+        expect(buckets.data.length).to.be.greaterThan(0)
       })
     })
 
+    let fileId
     describe('Files', () => {
       it('Should upload a file to bucket', async () => {
-        await mcs.createBucket('test-bucket')
-
         fileName = `test-file-${Date.now()}`
+        await fs.writeFile(`./${fileName}`, fileName)
 
-        let upload = await mcs.uploadToBucket(
-          'test-bucket',
-          fileName,
-          './file1.txt',
-        )
+        let upload = await mcs.uploadToBucket(`./${fileName}`, bucketUid, '')
+
+        fileId = upload.data.file_id
+
         expect(upload.status).to.equal('success')
       })
 
+      it('Should not allow user to upload same file', async () => {
+        expect(
+          mcs.uploadToBucket(`./${fileName}`, bucketUid, ''),
+        ).to.eventually.be.throw()
+      })
+
       it('Should download a file from bucket', async () => {
-        await mcs.downloadFile('test-bucket', fileName, './download')
+        await mcs.downloadFile(fileId, './download')
 
         try {
           const data = await fs.readFile(`./download/${fileName}`, 'utf8')
-          expect(data).to.equal('Hello, World!')
+          expect(data).to.equal(fileName)
         } catch (err) {
           console.error(err)
         }
       })
 
       it('Should not allow download of non existing file', async () => {
-        expect(
-          mcs.downloadFile('test-bucket', 'nonexisting_file', './download'),
-        ).to.eventually.be.throw('file not found')
-
-        // try {
-        //   const data = await fs.readFile(`./download/${fileName}`, 'utf8')
-        //   expect(data).to.equal('Hello, World!')
-        // } catch (err) {
-        //   console.error(err)
-        // }
+        expect(mcs.downloadFile(-1, './download')).to.eventually.be.throw(
+          'file not found',
+        )
       })
 
       it('Should delete the file', async () => {
-        let bucket = await mcs.getBucket('test-bucket')
-        let file = bucket.data.objects.find((file) => file.name === fileName)
-
-        expect(file.id).to.equal(await mcs.getFileId('test-bucket', fileName))
-
-        let res = await mcs.deleteFileFromBucket(file.id)
+        let res = await mcs.deleteFile(fileId)
         expect(res.status).to.equal('success')
 
-        bucket = await mcs.getBucket('test-bucket')
-        expect(bucket.data.objects.length).to.equal(0)
+        expect(mcs.getFileInfo(fileId)).to.eventually.be.throw()
       })
     })
   })

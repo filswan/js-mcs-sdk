@@ -242,8 +242,8 @@ class mcsSDK {
     )
   }
 
-  downloadFile = async (bucketName, fileName, outputDirectory = '.') => {
-    return await downloadFile(this.jwt, bucketName, fileName, outputDirectory)
+  downloadFile = async (fileId, outputDirectory = '.') => {
+    return await downloadFile(this.jwt, fileId, outputDirectory)
   }
 }
 
