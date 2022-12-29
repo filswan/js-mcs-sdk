@@ -1,11 +1,11 @@
 const { BUCKETS_API } = require('../../helper/constants')
-const { getBuckets } = require('./buckets')
 const axios = require('axios')
 axios.defaults.maxBodyLength = Infinity
 const fs = require('fs')
 const { request } = require('urllib')
 const SparkMD5 = require('spark-md5')
 const FormData = require('form-data')
+let path = require('path')
 
 let getChildFile = (path) => {
   let pathArray = path.split('/')
@@ -108,16 +108,59 @@ let check = async (jwt, file, hash, bucket_uid, prefix) => {
     let res = await axios.post(`${BUCKETS_API}oss_file/check`, body, config)
     return res.data
   } catch (err) {
-    console.log(err.response?.data)
+    console.log('CHECK ERROR')
   }
 }
 
 const uploadToBucket = async (jwt, filePath, bucketUid, folder, log) => {
+  let stats = fs.lstatSync(filePath)
+  if (stats.isFile()) {
+    return await uploadFile(jwt, filePath, bucketUid, folder, log)
+  } else if (stats.isDirectory()) {
+    return await uploadDirectory(jwt, filePath, bucketUid, folder, log)
+  }
+}
+
+const uploadFile = async (jwt, filePath, bucketUid, folder, log) => {
   let md5 = await hashFile(filePath)
 
-  await check(jwt, md5.filename, md5.hash, bucketUid, folder)
+  let res = await check(jwt, md5.filename, md5.hash, bucketUid, folder)
+
+  console.log(res)
+
   await uploadChunks(jwt, filePath, md5.filename, md5.hash, log)
-  let res = await merge(jwt, md5.filename, md5.hash, bucketUid, folder)
+  if (!res.data.ipfs_is_exist && !res.data.file_is_exist) {
+    res = await merge(jwt, md5.filename, md5.hash, bucketUid, folder)
+  }
+
+  return res
+}
+
+const uploadDirectory = async (jwt, filePath, bucketUid, folder, log) => {
+  let pathWithoutSlash =
+    filePath.slice(-1) === '/' ? filePath.slice(0, -1) : filePath
+  let folderName = getChildFile(pathWithoutSlash)
+
+  let folderRes = await createFolder(jwt, bucketUid, folderName, folder)
+  if (!folderRes) {
+    return
+  }
+
+  let res = []
+
+  let files = fs.readdirSync(filePath)
+  for (let i = 0; i < files.length; i++) {
+    if (log) console.log(`uploading ${files[i]}...`)
+    let uploadRes = await uploadToBucket(
+      jwt,
+      `${pathWithoutSlash}/${files[i]}`,
+      bucketUid,
+      `${folder ? folder + '/' : ''}${folderName}`,
+      log,
+    )
+
+    res.push(uploadRes)
+  }
 
   return res
 }
