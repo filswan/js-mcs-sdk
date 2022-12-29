@@ -11,6 +11,7 @@ const {
   getBuckets,
   createBucket,
   deleteBucket,
+  renameBucket,
 } = require('./api/buckets/buckets')
 const {
   uploadToBucket,
@@ -244,6 +245,10 @@ class mcsSDK {
 
   downloadFile = async (fileId, outputDirectory = '.') => {
     return await downloadFile(this.jwt, fileId, outputDirectory)
+  }
+
+  renameBucket = async (bucketUid, bucketName) => {
+    return await renameBucket(this.jwt, bucketUid, bucketName)
   }
 }
 

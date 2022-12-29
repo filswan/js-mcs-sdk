@@ -49,4 +49,25 @@ const deleteBucket = async (jwt, bucketUid) => {
   }
 }
 
-module.exports = { getBuckets, createBucket, deleteBucket }
+const renameBucket = async (jwt, bucketUid, newName) => {
+  const config = {
+    headers: { Authorization: `Bearer ${jwt}` },
+  }
+
+  try {
+    const res = await axios.post(
+      `${BUCKETS_API}bucket/rename`,
+      {
+        bucket_name: newName,
+        bucket_uid: bucketUid,
+      },
+      config,
+    )
+
+    return res.data
+  } catch (err) {
+    console.error(err.response?.data)
+  }
+}
+
+module.exports = { getBuckets, createBucket, deleteBucket, renameBucket }
