@@ -50,7 +50,19 @@ class mcsSDK {
    * @param {string} rpcUrl - endpoint to read and send data on the blockchain
    * @returns {Object} MCS SDK instance
    */
-  static async initialize({ privateKey, rpcUrl, accessToken, apiKey, jwt }) {
+  static async initialize({
+    privateKey,
+    rpcUrl,
+    accessToken,
+    apiKey,
+    jwt,
+  } = {}) {
+    if (!accessToken || !apiKey) {
+      throw new Error(
+        'Missing access token/API key. Please check your parameters, or visit https://www.multichain.storage/ to generate an API key.',
+      )
+    }
+
     const web3 = new Web3(rpcUrl || 'https://polygon-rpc.com/')
     let walletAddress
     if (privateKey) {
