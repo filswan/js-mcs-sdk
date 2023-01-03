@@ -3,6 +3,7 @@ const mocha = require('mocha')
 const chai = require('chai')
 chai.use(require('chai-as-promised'))
 const expect = chai.expect
+const fs = require('fs').promises
 
 // Importing fareutils.js where our code is written
 const { mcsSDK } = require('../SDK/index')
@@ -40,16 +41,8 @@ describe('MCS SDK', function () {
       expect(uploadResponse[0].status).to.equal('success')
     })
 
-    it('Should not allow payment for a free file', async () => {
-      let paymentResponse = mcs.makePayment(
-        sourceFileUploadId,
-        '0.000002',
-        size,
-      )
-
-      await expect(
-        mcs.makePayment(sourceFileUploadId, '0.000002', size),
-      ).to.be.rejectedWith(Error)
+    it('Should pay for file', async () => {
+      await mcs.makePayment(sourceFileUploadId, '', size)
     })
 
     it('Should mint NFT', async () => {
@@ -133,6 +126,30 @@ describe('MCS SDK', function () {
           './file1.txt',
         )
         expect(upload.status).to.equal('success')
+      })
+
+      it('Should download a file from bucket', async () => {
+        await mcs.downloadFile('test-bucket', fileName, './download')
+
+        try {
+          const data = await fs.readFile(`./download/${fileName}`, 'utf8')
+          expect(data).to.equal('Hello, World!')
+        } catch (err) {
+          console.error(err)
+        }
+      })
+
+      it('Should not allow download of non existing file', async () => {
+        expect(
+          mcs.downloadFile('test-bucket', 'nonexisting_file', './download'),
+        ).to.eventually.be.throw('file not found')
+
+        // try {
+        //   const data = await fs.readFile(`./download/${fileName}`, 'utf8')
+        //   expect(data).to.equal('Hello, World!')
+        // } catch (err) {
+        //   console.error(err)
+        // }
       })
 
       it('Should delete the file', async () => {

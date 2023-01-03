@@ -2,7 +2,8 @@ const { BUCKETS_API } = require('../../helper/constants')
 const { getBuckets } = require('./buckets')
 const axios = require('axios')
 const fs = require('fs')
-const { open } = require('fs').promises
+const { Agent } = require('https')
+const { request } = require('urllib')
 
 const createUploadSession = async (jwt, bucketName, fileName, filePath) => {
   const bucketInfo = await getBuckets(jwt, bucketName)
@@ -33,6 +34,10 @@ const createUploadSession = async (jwt, bucketName, fileName, filePath) => {
 const uploadToBucket = async (jwt, bucketName, fileName, filePath) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
+    maxContentLength: Infinity,
+    maxBodyLength: Infinity,
+    maxRedirects: 0,
+    agent: new Agent({ rejectUnauthorized: false }),
   }
 
   try {
@@ -40,7 +45,7 @@ const uploadToBucket = async (jwt, bucketName, fileName, filePath) => {
       jwt,
       bucketName,
       fileName,
-      filePath,
+      filePath
     )
 
     if (session.status == 'error') throw new Error(session.message)
@@ -48,7 +53,7 @@ const uploadToBucket = async (jwt, bucketName, fileName, filePath) => {
     const res = await axios.post(
       `${BUCKETS_API}file/upload/${session.data.sessionID}/0`,
       fs.createReadStream(filePath),
-      config,
+      config
     )
 
     if (res.data.status === 'error') {
@@ -61,4 +66,30 @@ const uploadToBucket = async (jwt, bucketName, fileName, filePath) => {
   }
 }
 
-module.exports = { uploadToBucket }
+const downloadFile = async (jwt, bucketName, fileName, outputDirectory) => {
+  try {
+    let bucketInfo = await getBuckets(jwt, bucketName)
+    let files = bucketInfo.data?.objects
+
+    let file = files.find((f) => f.name == fileName)
+
+    if (!file) {
+      throw new Error('file not found')
+    }
+
+    let name = outputDirectory.endsWith('/')
+      ? outputDirectory + file.ipfs_url?.split('?filename=').pop()
+      : outputDirectory + '/' + file.ipfs_url?.split('?filename=').pop()
+
+    let res = await request(file.ipfs_url)
+    await fs.promises.writeFile(name, res.data, (err) => {
+      if (err) {
+        console.error(err)
+      }
+    })
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+module.exports = { uploadToBucket, downloadFile }
