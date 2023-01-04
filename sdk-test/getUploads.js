@@ -12,11 +12,12 @@ async function main() {
 
   const mcs = await mcsSDK.initialize({
     privateKey: process.env.PRIVATE_KEY,
-    rpcUrl: process.env.RPC_URL,
+    apiKey: process.env.API_KEY,
+    accessToken: process.env.ACCESS_TOKEN,
   })
 
   const uploads = await mcs.getUploads(
-    mcs.publicKey,
+    mcs.walletAddress,
     FILE_NAME,
     ORDER_BY,
     IS_ASCEND,

@@ -8,7 +8,8 @@ async function main() {
 
   const mcs = await mcsSDK.initialize({
     privateKey: process.env.PRIVATE_KEY,
-    rpcUrl: process.env.RPC_URL,
+    apiKey: process.env.API_KEY,
+    accessToken: process.env.ACCESS_TOKEN,
   })
 
   console.log('version:', mcs.version)

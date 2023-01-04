@@ -243,7 +243,7 @@ class mcsSDK {
   uploadToBucket = async (
     filePath,
     bucketUid,
-    folder,
+    folder = '',
     options = { log: false },
   ) => {
     return await uploadToBucket(
