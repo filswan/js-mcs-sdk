@@ -16,7 +16,6 @@ describe('MCS SDK', function () {
   it('Should not allow initialize SDK without API key', async () => {
     expect(
       mcsSDK.initialize({
-        rpcUrl: 'https://matic-mumbai.chainstacklabs.com',
         accessToken: process.env.ACCESS_TOKEN,
       }),
     ).to.eventually.be.throw()
@@ -25,7 +24,6 @@ describe('MCS SDK', function () {
   it('Should not allow initialize SDK without Access Token', async () => {
     expect(
       mcsSDK.initialize({
-        rpcUrl: 'https://matic-mumbai.chainstacklabs.com',
         apiKey: process.env.API_KEY,
       }),
     ).to.eventually.be.throw()
@@ -40,7 +38,6 @@ describe('MCS SDK', function () {
     mcs = await mcsSDK.initialize({
       accessToken: process.env.ACCESS_TOKEN,
       apiKey: process.env.API_KEY,
-      rpcUrl: 'https://matic-mumbai.chainstacklabs.com',
     })
 
     expect(mcs)
