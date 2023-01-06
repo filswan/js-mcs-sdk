@@ -116,7 +116,7 @@ main()
 
 ## Create a Bucket
 
-Use the `createBucket` function to create a bucket.
+Provide a Bucket Name and use the `createBucket` function to create a bucket. The `createResponse` will contain the Bucket's UID.
 
 ```js
 require('dotenv').config()
@@ -128,7 +128,9 @@ async function main() {
     accessToken: process.env.ACCESS_TOKEN,
   })
 
-  createResponse = await mcs.createBucket('bucket-name')
+  const BUCKET_NAME = ''
+
+  createResponse = await mcs.createBucket(BUCKET_NAME)
   console.log(createResponse)
 }
 
