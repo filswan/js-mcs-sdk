@@ -60,13 +60,13 @@ npm install js-mcs-sdk
 
 Set your API Key and Access Token as environment variables in a `.env` file. Optionally include your wallet's private key and RPC-url.
 
-```js
-API_KEY=<API_KEY>
-ACCESS_TOKEN=<ACCESS_TOKEN>
+```bash
+API_KEY='<API_KEY>'
+ACCESS_TOKEN='<ACCESS_TOKEN>'
 
 # optional
-PRIVATE_KEY=<PRIVATE_KEY>
-RPC_URL=<RPC_URL>
+PRIVATE_KEY='<PRIVATE_KEY>'
+RPC_URL='<RPC_URL>'
 ```
 
 ## Initalize SDK
@@ -97,7 +97,7 @@ Copy and paste the code snippits below and use `node index.js` to run the script
 
 Get a list of all your buckets
 
-```
+```js
 require('dotenv').config()
 const { mcsSDK } = require('js-mcs-sdk')
 
@@ -118,7 +118,7 @@ main()
 
 Use the `createBucket` function to create a bucket.
 
-```
+```js
 require('dotenv').config()
 const { mcsSDK } = require('js-mcs-sdk')
 
@@ -139,7 +139,7 @@ main()
 
 After creating a Bucket, you can upload file(s) using the Bucket's UID.
 
-```
+```js
 require('dotenv').config()
 const { mcsSDK } = require('js-mcs-sdk')
 
@@ -153,7 +153,11 @@ async function main() {
   const BUCKET_UID = ''
   const FOLDER_PREFIX = ''
 
-  uploadResponse = await mcs.uploadToBucket(FILE_PATH, BUCKET_UID, FOLDER_PREFIX)
+  uploadResponse = await mcs.uploadToBucket(
+    FILE_PATH,
+    BUCKET_UID,
+    FOLDER_PREFIX,
+  )
   console.log(uploadResponse)
 }
 
@@ -164,7 +168,7 @@ main()
 
 After creating a Bucket, you can also create nested subfolders. So when uploading to a subfolder, provide the subfolder path within the bucket ex. `uploadToBucket(FILE_PATH, BUCKET_UID, 'path/to/subfolder')`
 
-```
+```js
 require('dotenv').config()
 const { mcsSDK } = require('js-mcs-sdk')
 
@@ -178,7 +182,11 @@ async function main() {
   const FOLDER_NAME = ''
   const FOLDER_PREFIX = ''
 
-  folderResponse = await mcs.createFolder(BUCKET_UID, FOLDER_NAME, FOLDER_PREFIX)
+  folderResponse = await mcs.createFolder(
+    BUCKET_UID,
+    FOLDER_NAME,
+    FOLDER_PREFIX,
+  )
   console.log(folderResponse)
 }
 
