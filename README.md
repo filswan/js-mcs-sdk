@@ -151,7 +151,7 @@ async function main() {
     accessToken: process.env.ACCESS_TOKEN,
   })
 
-  const FILE_PATH = '.'
+  const FILE_PATH = ''
   const BUCKET_UID = ''
   const FOLDER_PREFIX = ''
 
