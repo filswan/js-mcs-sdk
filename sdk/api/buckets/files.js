@@ -128,6 +128,9 @@ const uploadFile = async (jwt, filePath, bucketUid, folder, log) => {
   let md5 = await hashFile(filePath)
 
   let res = await check(jwt, md5.filename, md5.hash, bucketUid, folder)
+  if (res.status === 'error') {
+    throw new Error(res.message)
+  }
 
   await uploadChunks(jwt, filePath, md5.filename, md5.hash, log)
   if (!res.data.ipfs_is_exist && !res.data.file_is_exist) {
