@@ -88,6 +88,8 @@ async function main() {
 main()
 ```
 
+Optionally, you can pass `privateKey` to use the onChain Storage upload and payment functions and pass `rpcUrl` if you wish to use your own RPC URL (this SDK uses https://polygon-rpc.com/ by default).
+
 # Example Usage
 
 Start by creating a script `index.js` in the working directory.
@@ -139,7 +141,7 @@ main()
 
 ## Upload to a Bucket
 
-After creating a Bucket, you can upload file(s) using the Bucket's UID.
+After creating a Bucket, you can upload file(s) using the Bucket's UID. The folder prefix is used when uploading to a subfolder in a bucket (ex. "folder1/folder2"). Folder prefix should be blank when just uploading to the bucket itself.
 
 ```js
 require('dotenv').config()
@@ -212,6 +214,7 @@ async function main() {
   const mcs = await mcsSDK.initialize({
     accessToken: process.env.ACCESS_TOKEN,
     apiKey: process.env.API_KEY,
+    privateKey: process.env.PRIVATE_KEY,
   })
 
   const FILE_NAME = ''
