@@ -95,6 +95,9 @@ class mcsSDK {
    * @returns {Array} Array of upload API responses
    */
   upload = async (files, options) => {
+    if (!this.walletAddress) {
+      throw new Error('No private key found')
+    }
     return await mcsUpload(this.walletAddress, this.jwt, files, options)
   }
 
@@ -107,6 +110,10 @@ class mcsSDK {
    * @returns {Object} payment transaction response
    */
   makePayment = async (sourceFileUploadId, amount, size) => {
+    if (!this.walletAddress) {
+      throw new Error('No private key found')
+    }
+
     let tx = await lockToken(
       this.jwt,
       this.web3,
