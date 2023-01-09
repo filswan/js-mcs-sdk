@@ -8,9 +8,9 @@
 - [Introduction](#introduction)
   - [Prerequisites](#prerequisites)
 - [MCS API](#mcs-api)
-- [Usage](#usage)
+- [Getting Started](#getting-started)
   - [Installation](#installation)
-  - [Getting Started](#getting-started)
+  - [Initialize SDK](#initialize-sdk)
   - [Using Buckets](#using-buckets)
   - [Documentation](#documentation)
 - [Contributing](#contributing)
@@ -30,28 +30,25 @@ Buckets Functions:
 
 - **GET** list bucket(s)
 - **PUT** create bucket
-- **POST** upload file to bucket
+- **POST** upload file/folder to bucket
+- **POST** rename bucket
 - **GET** download file from bucket
-- **DELETE** delete bucket(s) and file(s)
+- **DELETE** delete bucket
+- **DELETE** delete file from bucket
 
 # Prerequisites
 
 [Node.js](https://nodejs.org/en/) - v16.13.0 (npm v8.1.0) \
-Polygon Mumbai Testnet Wallet - [Metamask Tutorial](https://docs.filswan.com/getting-started/beginner-walkthrough/public-testnet/setup-metamask) \
-Polygon Mainnet RPC - [Signup via Alchemy](https://www.alchemy.com/)
+Polygon Wallet - [Metamask Tutorial](https://docs.filswan.com/getting-started/beginner-walkthrough/public-testnet/setup-metamask) \
+API Key and Access Token - Obtained via https://multichain.storage
 
-You will also need USDC and MATIC balance to use this SDK.
-
-# MCS API
-
-For more information about the API usage, check out the [MCS API documentation](https://docs.filswan.com/development-resource/mcp-api-1).
-
-# Usage
+# Getting Started
 
 Instructions for developers working with MCS SDK and API.
 
 ## Installation
 
+In a new working directory, use `npm init -y` to initialize a Node.js project.
 Install the package using npm
 
 ```
@@ -59,20 +56,152 @@ npm init -y
 npm install js-mcs-sdk
 ```
 
-## Getting Started
+## Set Up Environment Variables
 
-### Set Up Environment Variables
+Set your API Key and Access Token as environment variables in a `.env` file. Optionally include your wallet's private key and RPC-url.
 
-First you should set your wallet's private key and RPC-url as environment variables in a `.env` file.
+```bash
+API_KEY='<API_KEY>'
+ACCESS_TOKEN='<ACCESS_TOKEN>'
 
-```js
-PRIVATE_KEY=<PRIVATE_KEY>
-RPC_URL=<RPC_URL>
+# optional
+PRIVATE_KEY='<PRIVATE_KEY>'
+RPC_URL='<RPC_URL>'
 ```
 
-### Upload File
+## Initalize SDK
 
-Example of uploading a single file using the MCS SDK. View the complete [documentation](https://docs.filswan.com/multichain.storage/developer-quickstart/sdk/js-mcs-sdk/mcs-functions/upload-files)
+To begin using the SDK, we first need to require the package at the top of the script and call the `initialize` function
+
+```js
+require('dotenv').config()
+const { mcsSDK } = require('js-mcs-sdk')
+
+async function main() {
+  // initialize js-mcs-sdk
+  const mcs = await mcsSDK.initialize({
+    apiKey: process.env.API_KEY,
+    accessToken: process.env.ACCESS_TOKEN,
+  })
+}
+
+main()
+```
+
+# Example Usage
+
+Start by creating a script `index.js` in the working directory.
+Copy and paste the code snippits below and use `node index.js` to run the script.
+
+## Get Bucket List
+
+Get a list of all your buckets
+
+```js
+require('dotenv').config()
+const { mcsSDK } = require('js-mcs-sdk')
+
+async function main() {
+  const mcs = await mcsSDK.initialize({
+    apiKey: process.env.API_KEY,
+    accessToken: process.env.ACCESS_TOKEN,
+  })
+
+  let bucketList = await mcs.getBuckets()
+  console.log(bucketList)
+}
+
+main()
+```
+
+## Create a Bucket
+
+Provide a Bucket Name and use the `createBucket` function to create a bucket. The `createResponse` will contain the Bucket's UID.
+
+```js
+require('dotenv').config()
+const { mcsSDK } = require('js-mcs-sdk')
+
+async function main() {
+  const mcs = await mcsSDK.initialize({
+    apiKey: process.env.API_KEY,
+    accessToken: process.env.ACCESS_TOKEN,
+  })
+
+  const BUCKET_NAME = ''
+
+  createResponse = await mcs.createBucket(BUCKET_NAME)
+  console.log(createResponse)
+}
+
+main()
+```
+
+## Upload to a Bucket
+
+After creating a Bucket, you can upload file(s) using the Bucket's UID.
+
+```js
+require('dotenv').config()
+const { mcsSDK } = require('js-mcs-sdk')
+
+async function main() {
+  const mcs = await mcsSDK.initialize({
+    apiKey: process.env.API_KEY,
+    accessToken: process.env.ACCESS_TOKEN,
+  })
+
+  const FILE_PATH = ''
+  const BUCKET_UID = ''
+  const FOLDER_PREFIX = ''
+
+  uploadResponse = await mcs.uploadToBucket(
+    FILE_PATH,
+    BUCKET_UID,
+    FOLDER_PREFIX,
+  )
+  console.log(uploadResponse)
+}
+
+main()
+```
+
+## Create Subfolders in a Bucket
+
+After creating a Bucket, you can also create nested subfolders. So when uploading to a subfolder, provide the subfolder path within the bucket ex. `uploadToBucket(FILE_PATH, BUCKET_UID, 'path/to/subfolder')`
+
+```js
+require('dotenv').config()
+const { mcsSDK } = require('js-mcs-sdk')
+
+async function main() {
+  const mcs = await mcsSDK.initialize({
+    apiKey: process.env.API_KEY,
+    accessToken: process.env.ACCESS_TOKEN,
+  })
+
+  const BUCKET_UID = ''
+  const FOLDER_NAME = ''
+  const FOLDER_PREFIX = ''
+
+  folderResponse = await mcs.createFolder(
+    BUCKET_UID,
+    FOLDER_NAME,
+    FOLDER_PREFIX,
+  )
+  console.log(folderResponse)
+}
+
+main()
+```
+
+## Using Onchain Storage
+
+Alternatively to Bucket Storage, users can upload files to IPFS and Filecoin with on-chain proof of storage.
+
+### Uploading a File
+
+Example of uploading a single file. Provide the file name and file path.
 
 ```js
 require('dotenv').config()
@@ -80,14 +209,17 @@ const { mcsSDK } = require('js-mcs-sdk')
 const fs = require('fs')
 
 async function main() {
-  // initialize js-mcs-sdk
   const mcs = await mcsSDK.initialize({
-    privateKey: process.env.PRIVATE_KEY,
-    rpcUrl: process.env.RPC_URL,
+    accessToken: process.env.ACCESS_TOKEN,
+    apiKey: process.env.API_KEY,
   })
 
-  const testFile = JSON.stringify({ address: mcs.walletAddres })
-  const fileArray = [{ fileName: `${mcs.walletAddres}.txt`, file: testFile }]
+  const FILE_NAME = ''
+  const FILE_PATH = ''
+
+  const fileArray = [
+    { fileName: FILE_NAME, file: fs.createReadStream(FILE_PATH) },
+  ]
 
   const uploadResponse = await mcs.upload(fileArray)
   console.log(uploadResponse)
@@ -96,23 +228,24 @@ async function main() {
 main()
 ```
 
-### Payment
+## Paying for File Storage
 
-Currently, on MCS mainnet, users only need to pay if the upload surpasses the free upload coverage.
+Pay for a file using its unique source file upload ID, its file size, and payment amount.
 
 ```js
 require('dotenv').config()
 const { mcsSDK } = require('js-mcs-sdk')
 
 async function main() {
+  const mcs = await mcsSDK.initialize({
+    accessToken: process.env.ACCESS_TOKEN,
+    apiKey: process.env.API_KEY,
+    privateKey: process.env.PRIVATE_KEY,
+  })
+
   const SOURCE_FILE_UPLOAD_ID = ''
   const FILE_SIZE = ''
   const MIN_AMOUNT = '' // leave blank to automatically estimate price
-
-  const mcs = await mcsSDK.initialize({
-    privateKey: process.env.PRIVATE_KEY,
-    rpcUrl: process.env.RPC_URL,
-  })
 
   const tx = await mcs.makePayment(SOURCE_FILE_UPLOAD_ID, MIN_AMOUNT, FILE_SIZE)
   console.log('transaction hash: ' + tx.transactionHash)
@@ -121,83 +254,9 @@ async function main() {
 main()
 ```
 
-## Using Buckets
-
-There are multiple functions provided by js-mcs-sdk to interact with buckets.
-
-### Check Bucket Information
-
-You can check bucket and file information, including `name`. `id`, `session policy`, etc
-
-```
-require('dotenv').config()
-const { mcsSDK } = require('js-mcs-sdk')
-
-async function main() {
-  const mcs = await mcsSDK.initialize({
-    privateKey: process.env.PRIVATE_KEY,
-    rpcUrl: process.env.RPC_URL,
-  })
-
-  BUCKET_NAME='' // leave blank to get all buckets
-  console.log(await mcs.getBuckets(BUCKET_NAME))
-}
-
-main()
-```
-
-### Create and Delete Buckets
-
-Users can create and delete Buckets. (At the current version, only 1 bucket is allow per user)
-
-```js
-await mcs.createBucket(<bucketName>)
-await mcs.deleteBucket(<bucketId>)
-```
-
-### Upload and Delete Files
-
-Uploading a file to a bucket is similar to MCS. However 2 files cannot have the same name within 1 bucket. Therefore, you may want to use different file names when uploading the same file multiple times to a bucket.
-
-```js
-await mcs.uploadToBucket(<bucketName>, <fileName>, <filePath>)
-await mcs.deleteFileFromBucket(<fileId>)
-```
-
-### Download Files
-
-After uploading a file to a Bucket, it is possible to retreive the file using the Bucket name and file name. The `outputDirectory` is optional and defaults to the current directory.
-
-```js
-await mcs.downloadFile(<bucketName>, <fileName>, <outputDirectory>)
-```
-
-# Testing
-
-There are some example scripts in the `sdk-test` folder. To run the examples, clone the repo, `cd` into the `sdk-test` directory, and install the necessary dependencies.
-
-```
-git clone https://github.com/filswan/js-mcs-sdk/ .
-cd sdk-test
-npm install
-```
-
-`node upload.js` uploads a simple file (you can edit the `FILE_NAME` and `FILE_PATH`)
-
-`node makePayment.js` pays for a file using its `source file upload id` (you can edit the `FILE_NAME` and `FILE_PATH`) (will throw an Error if the file cannot be paid for)
-
-`node mintAsset.js` mints a file as a NFT by providing `source file upload id` and other information
-
-Alternatively, you can run the test-script to test each SDK function using mocha.js and chai.js
-(needs to have `PRIVATE_KEY` set in `.env` file.
-
-```
-mocha ./mcs.test.js -t 150000
-```
-
 # Documentation
 
-For more examples please see the [SDK documentation](https://docs.filswan.com/multi-chain-storage/developer-quickstart/sdk/js-mcs-sdk) or the test directory in the [sdk-test repository](https://github.com/filswan/js-mcs-sdk/tree/main/sdk-test), which contains sample code for all SDK functionalities
+For more examples please see the [SDK documentation](https://docs.filswan.com/multi-chain-storage/developer-quickstart/sdk/js-mcs-sdk) or the test directory in the [sdk-test repository](https://github.com/filswan/js-mcs-sdk/tree/main/sdk-test)
 
 # Contributing
 

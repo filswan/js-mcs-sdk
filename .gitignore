@@ -28,3 +28,4 @@ artifacts
 .console_script.js
 sdk-test/dev.js
 sdk-test/temp*
+test-file*
