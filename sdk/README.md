@@ -5,14 +5,16 @@
 
 # Table of Contents <!-- omit in toc -->
 
-- [Introduction](#---introduction)
+- [Introduction](#introduction)
   - [For Onchain Storage](#for-onchain-storage)
   - [For Buckets Storage](#for-buckets-storage)
-- [Getting Started](#---getting-started)
+- [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
-  - [Examples](#------examples)
-- [Contributing](#---contributing)
+  - [Examples](#examples)
+- [Contributing](#contributing)
+
+<a name="introduction"></a>
 
 # ℹ️ Introduction
 
@@ -39,6 +41,8 @@ A javascript software development kit for the Multi-Chain Storage (MCS) https://
 - **GET** File information
 - **GET** Delete File
 
+<a name="getting-started"></a>
+
 # 🆕 Getting Started
 
 ## Prerequisites
@@ -57,6 +61,8 @@ Install the package using npm
 npm init -y
 npm install js-mcs-sdk
 ```
+
+<a name="examples"></a>
 
 # 👨‍💻 Examples
 
@@ -129,6 +135,8 @@ Here is the demo to get you started; you can get more information in the [SDK do
    **_Note that if you upload a file with the prefix field defined in a folder that has not yet been created, you will not be able to see the file until you create a folder with the same name._**
 
 For more examples, please see the [SDK documentation.](https://docs.filswan.com/multi-chain-storage/developer-quickstart/sdk)
+
+<a name="contributing"></a>
 
 # 🌐 Contributing
 
