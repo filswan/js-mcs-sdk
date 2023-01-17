@@ -98,6 +98,7 @@ Here is the demo to get you started; you can get more information in the [SDK do
      const mcs = await mcsSDK.initialize({
        apiKey: process.env.API_KEY,
        accessToken: process.env.ACCESS_TOKEN,
+       chainName: 'polygon.mainnet',
      })
    }
 
@@ -105,6 +106,8 @@ Here is the demo to get you started; you can get more information in the [SDK do
    ```
 
    Optionally, you can pass `privateKey` to use the onChain Storage upload and payment functions and pass `rpcUrl` if you wish to use your own RPC URL (this SDK uses https://polygon-rpc.com/ by default).
+
+   This SDK is also compatiable with our calibration environment on the Mumbai testnet. Use `chainName: 'polygon.mumbai'` and generate a new API KEY from [calibration-mcs.filswan.com/](https://calibration-mcs.filswan.com/)
 
    ### For Onchain Storage
 

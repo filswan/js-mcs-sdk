@@ -98,6 +98,7 @@ Here is the demo to get you started; you can get more information in the [SDK do
      const mcs = await mcsSDK.initialize({
        apiKey: process.env.API_KEY,
        accessToken: process.env.ACCESS_TOKEN,
+       chainName: 'polygon.mainnet',
      })
    }
 
