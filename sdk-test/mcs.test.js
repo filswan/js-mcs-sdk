@@ -36,20 +36,21 @@ describe('MCS SDK', function () {
 
   it('Should initialize SDK', async () => {
     mcs = await mcsSDK.initialize({
-      accessToken: process.env.ACCESS_TOKEN,
-      apiKey: process.env.API_KEY,
+      accessToken: process.env.CALI_ACCESS_TOKEN,
+      apiKey: process.env.CALI_API_KEY,
+      chainName: 'polygon.mumbai',
     })
 
     expect(mcs)
   })
 
-  it('Should add private key', async () => {
+  it('Should setup web3', async () => {
     expect(mcs.walletAddress).to.be.undefined
-    await mcs.addPrivateKey(process.env.PRIVATE_KEY)
+    await mcs.setupWeb3(process.env.PRIVATE_KEY, process.env.RPC_URL)
     expect(mcs.walletAddress)
   })
 
-  xdescribe('MCS functions', () => {
+  describe('Onchain Storage functions', () => {
     it('Should upload a file', async () => {
       const testFile = JSON.stringify({ address: mcs.walletAddress })
       const fileArray = [
@@ -93,27 +94,26 @@ describe('MCS SDK', function () {
     })
   })
 
-  describe('Buckets functions', () => {
+  describe('Bucket Storage functions', () => {
     let bucketUid
     describe('Buckets', () => {
       it('Should remove test-bucket', async () => {
         let buckets = await mcs.getBuckets()
         let testBucket = buckets.data.find(
-          (b) => b.BucketName === 'test-bucket',
+          (b) => b.bucket_name === 'test-bucket',
         )
 
         if (testBucket) {
-          await mcs.deleteBucket(testBucket.BucketUid)
+          await mcs.deleteBucket(testBucket.bucket_uid)
         }
 
         buckets = await mcs.getBuckets()
-        testBucket = buckets.data.find((b) => b.BucketName === 'test-bucket')
+        testBucket = buckets.data.find((b) => b.bucket_name === 'test-bucket')
 
         expect(testBucket).to.be.undefined
       })
       it('Should create a new bucket', async () => {
         let bucket = await mcs.createBucket('test-bucket')
-
         bucketUid = bucket.data
 
         expect(bucket.status).to.equal('success')
@@ -134,7 +134,6 @@ describe('MCS SDK', function () {
         let upload = await mcs.uploadToBucket(`./${fileName}`, bucketUid, '')
 
         fileId = upload.data.file_id
-
         expect(upload.status).to.equal('success')
       })
 
@@ -147,7 +146,6 @@ describe('MCS SDK', function () {
 
       it('Should download a file from bucket', async () => {
         let res = await mcs.downloadFile(fileId, './download')
-
         const data = await fs.readFile(`./download/${fileName}`, 'utf8')
         expect(data).to.equal(fileName)
       })
@@ -196,19 +194,19 @@ describe('MCS SDK', function () {
         let upload = await mcs.uploadToBucket(`./f1`, bucketUid, 'test-folder')
 
         let bucketInfo = (await mcs.getBuckets()).data.find(
-          (buckets) => buckets.BucketUid === bucketUid,
+          (buckets) => buckets.bucket_uid === bucketUid,
         )
-        expect(bucketInfo.FileNumber).to.equal(3)
+        expect(bucketInfo.file_number).to.equal(3)
       })
 
       it('Should delete the folder', async () => {
-        let folder = (await mcs.getFileList(bucketUid)).FileList.find(
-          (file) => file.Name === 'test-folder',
+        let folder = (await mcs.getFileList(bucketUid)).file_list.find(
+          (file) => file.name === 'test-folder',
         )
-        let res = await mcs.deleteFile(folder.ID)
+        let res = await mcs.deleteFile(folder.id)
         let updatedList = await mcs.getFileList(bucketUid)
         expect(res.status).to.equal('success')
-        expect(updatedList.Count).to.equal(0)
+        expect(updatedList.count).to.equal(0)
       })
     })
   })
