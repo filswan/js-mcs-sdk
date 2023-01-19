@@ -111,6 +111,15 @@ Here is the demo to get you started; you can get more information in the [SDK do
 
    ### For Onchain Storage
 
+   To use certain Onchain Storage features (upload, payment, minting), you will need to set up the web3 environment first.
+
+   - Setup Web3
+
+   ```js
+   await mcs.setupWeb3(<PRIVATE_KEY>, <RPC_URL>)
+   console.log(mcs.web3Initialized) // true
+   ```
+
    - Upload File to Onchain storage
 
    ```js

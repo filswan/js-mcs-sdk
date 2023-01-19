@@ -36,9 +36,8 @@ describe('MCS SDK', function () {
 
   it('Should initialize SDK', async () => {
     mcs = await mcsSDK.initialize({
-      accessToken: process.env.CALI_ACCESS_TOKEN,
-      apiKey: process.env.CALI_API_KEY,
-      chainName: 'polygon.mumbai',
+      accessToken: process.env.ACCESS_TOKEN,
+      apiKey: process.env.API_KEY,
     })
 
     expect(mcs)
@@ -46,7 +45,7 @@ describe('MCS SDK', function () {
 
   it('Should setup web3', async () => {
     expect(mcs.walletAddress).to.be.undefined
-    await mcs.setupWeb3(process.env.PRIVATE_KEY, process.env.RPC_URL)
+    await mcs.setupWeb3(process.env.PRIVATE_KEY)
     expect(mcs.walletAddress)
   })
 
