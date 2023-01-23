@@ -1,17 +1,16 @@
 const erc20ABI = require('../abi/ERC20.json')
 const swanPaymentABI = require('../abi/SwanPayment.json')
-const { MCS_API } = require('../helper/constants')
 const axios = require('axios')
 const { getParams } = require('../helper/params')
 const { getAveragePrice } = require('../helper/averagePrice.js')
 
-const getFilePaymentStatus = async (jwt, sourceFileUploadId) => {
+const getFilePaymentStatus = async (api, jwt, sourceFileUploadId) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
   }
   try {
     const res = await axios.get(
-      `${MCS_API}storage/source_file_upload/${sourceFileUploadId}`,
+      `${api}/v1/storage/source_file_upload/${sourceFileUploadId}`,
       config,
     )
     if (res?.data.status === 'error') {
@@ -29,6 +28,7 @@ const getFilePaymentStatus = async (jwt, sourceFileUploadId) => {
 }
 
 const lockToken = async (
+  api,
   jwt,
   web3,
   payer,
@@ -37,7 +37,11 @@ const lockToken = async (
   size,
 ) => {
   // check if file is free/paid for
-  const filePaymentStatus = await getFilePaymentStatus(jwt, sourceFileUploadId)
+  const filePaymentStatus = await getFilePaymentStatus(
+    api,
+    jwt,
+    sourceFileUploadId,
+  )
   let paymentStatus = filePaymentStatus.data.source_file_upload
 
   if (paymentStatus?.is_free || paymentStatus?.status != 'Pending') {
@@ -46,10 +50,10 @@ const lockToken = async (
   const wCid = paymentStatus.w_cid
 
   if (amount == '0' || amount == '') {
-    amount = await getAveragePrice(jwt, payer, size)
+    amount = await getAveragePrice(api, jwt, payer, size)
   }
 
-  const params = await getParams()
+  const params = await getParams(api)
 
   const usdcAddress = params.usdc_address
   const recipientAddress = params.payment_recipient_address

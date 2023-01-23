@@ -1,7 +1,6 @@
 const axios = require('axios')
-const { MCS_API } = require('../helper/constants')
-
 const getDealList = async (
+  api,
   jwt,
   { address, name, orderBy, isAscend, status, isMinted, pageNumber, pageSize },
 ) => {
@@ -10,7 +9,7 @@ const getDealList = async (
   }
   try {
     const res = await axios.get(
-      `${MCS_API}storage/tasks/deals?page_size=${pageSize || ''}&page_number=${
+      `${api}/v1/storage/tasks/deals?page_size=${pageSize || ''}&page_number=${
         pageNumber || ''
       }&file_name=${name || ''}&wallet_address=${address || ''}&order_by=${
         orderBy || ''

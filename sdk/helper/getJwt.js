@@ -1,9 +1,8 @@
 const axios = require('axios')
-const { MCS_API } = require('./constants')
 
-const getJwt = async (accessToken, apiKey, loginNetwork) => {
+const getJwt = async (api, accessToken, apiKey, loginNetwork) => {
   try {
-    const response = await axios.post(`${MCS_API}user/login_by_api_key`, {
+    const response = await axios.post(`${api}/v1/user/login_by_api_key`, {
       apikey: apiKey,
       access_token: accessToken,
       network: loginNetwork,

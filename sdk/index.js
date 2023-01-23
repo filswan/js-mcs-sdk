@@ -1,6 +1,7 @@
 const packageJson = require('./package.json')
 const Web3 = require('web3')
 
+const API = require('./helper/constants')
 const { lockToken } = require('./api/makePayment')
 const { getDealDetail } = require('./api/dealDetail')
 const { mint } = require('./api/mint')
@@ -23,24 +24,15 @@ const {
 } = require('./api/buckets/files')
 const { getJwt } = require('./helper/getJwt')
 
-const getNetwork = (chainId) => {
-  if (chainId == 137) {
-    return 'polygon.mainnet'
-  } else if (chainId == 80001) {
-    return 'polygon.mumbai'
-  } else {
-    throw new Error(`Unsupported chain id (${chainId})`)
-  }
-}
-
 class mcsSDK {
-  constructor(web3, walletAddress, accessToken, apiKey, jwt) {
+  constructor(chainName, accessToken, apiKey, jwt, api) {
     this.version = packageJson.version
-    this.web3 = web3
-    this.walletAddress = walletAddress
     this.accessToken = accessToken
     this.apiKey = apiKey
     this.jwt = jwt
+    this.api = api
+    this.web3Initialized = false
+    this.chainName = chainName
   }
 
   /**
@@ -52,39 +44,63 @@ class mcsSDK {
    */
   static async initialize({
     privateKey,
-    rpcUrl,
+    rpcUrl = 'https://polygon-rpc.com/',
+    chainName = 'polygon.mainnet',
     accessToken,
     apiKey,
     jwt,
   } = {}) {
+    let api
+    if (chainName === 'polygon.mainnet') {
+      api = API.MCS_API
+    } else if (chainName == 'polygon.mumbai') {
+      api = API.MCS_MUMBAI_API
+    } else {
+      throw new Error('unknown chain name')
+    }
+
     if (!accessToken || !apiKey) {
       throw new Error(
         'Missing access token/API key. Please check your parameters, or visit https://www.multichain.storage/ to generate an API key.',
       )
     }
 
-    const web3 = new Web3(rpcUrl || 'https://polygon-rpc.com/')
-    let walletAddress
-    if (privateKey) {
-      web3.eth.accounts.wallet.add(privateKey)
-      walletAddress = web3.eth.accounts.privateKeyToAccount(privateKey).address
-    }
-
-    const chainId = await web3.eth.getChainId()
-    const loginNetwork = getNetwork(chainId)
-
     if (!jwt) {
-      jwt = (await getJwt(accessToken, apiKey, loginNetwork)).jwt_token
+      jwt = (await getJwt(api, accessToken, apiKey, chainName)).jwt_token
     }
 
-    return new mcsSDK(web3, walletAddress, accessToken, apiKey, jwt)
+    if (privateKey && rpcUrl) {
+      await setupWeb3(privateKey, rpcUrl)
+    }
+
+    return new mcsSDK(chainName, accessToken, apiKey, jwt, api)
   }
 
-  addPrivateKey(privateKey) {
+  mapChainName = (chainName) => {
+    if (chainName == 'polygon.mainnet') {
+      return 137
+    } else if (chainName == 'polygon.mumbai') {
+      return 80001
+    }
+    return -1
+  }
+
+  setupWeb3 = async (privateKey, rpcUrl = 'https://polygon-rpc.com/') => {
+    this.web3 = new Web3(rpcUrl)
+    const chainId = await this.web3.eth.getChainId()
+
+    if (chainId != this.mapChainName(this.chainName)) {
+      this.web3Initialized = false
+      throw new Error(
+        `RPC Chain ID (${chainId}) does not match SDK chain name (${this.chainName})`,
+      )
+    }
+
     this.web3.eth.accounts.wallet.add(privateKey)
     this.walletAddress = this.web3.eth.accounts.privateKeyToAccount(
       privateKey,
     ).address
+    this.web3Initialized = true
   }
 
   /**
@@ -95,10 +111,17 @@ class mcsSDK {
    * @returns {Array} Array of upload API responses
    */
   upload = async (files, options) => {
-    if (!this.walletAddress) {
-      throw new Error('No private key found')
+    if (!this.web3Initialized) {
+      throw new Error('web3 not setup, call setupWeb3 first')
     }
-    return await mcsUpload(this.walletAddress, this.jwt, files, options)
+
+    return await mcsUpload(
+      this.api,
+      this.walletAddress,
+      this.jwt,
+      files,
+      options,
+    )
   }
 
   /**
@@ -110,11 +133,12 @@ class mcsSDK {
    * @returns {Object} payment transaction response
    */
   makePayment = async (sourceFileUploadId, amount, size) => {
-    if (!this.walletAddress) {
-      throw new Error('No private key found')
+    if (!this.web3Initialized) {
+      throw new Error('web3 not setup, call setupWeb3 first')
     }
 
     let tx = await lockToken(
+      this.api,
       this.jwt,
       this.web3,
       this.walletAddress,
@@ -133,7 +157,7 @@ class mcsSDK {
    * @returns {Object} file status on MCS
    */
   getFileStatus = async (dealId) => {
-    return await getFileStatus(this.jwt, dealId)
+    return await getFileStatus(this.api, this.jwt, dealId)
   }
 
   /**
@@ -145,6 +169,7 @@ class mcsSDK {
    */
   mintAsset = async (sourceFileUploadId, nft, generateMetadata = true) => {
     return await mint(
+      this.api,
       this.jwt,
       this.web3,
       this.walletAddress,
@@ -168,7 +193,7 @@ class mcsSDK {
    */
   getDealList = async (params) => {
     if (!params) params = { wallet: this.walletAddress }
-    return await getDealList(this.jwt, params)
+    return await getDealList(this.api, this.jwt, params)
   }
   /**
    *
@@ -177,30 +202,30 @@ class mcsSDK {
    * @returns
    */
   getFileDetails = async (sourceFileUploadId, dealId) => {
-    return await getDealDetail(this.jwt, sourceFileUploadId, dealId)
+    return await getDealDetail(this.api, this.jwt, sourceFileUploadId, dealId)
   }
 
   createBucket = async (bucketName) => {
-    return await createBucket(this.jwt, bucketName)
+    return await createBucket(this.api, this.jwt, bucketName)
   }
 
   // //aliases
   // getBucket = async (bucketName) => {
-  //   return await getBuckets(this.jwt, bucketName)
+  //   return await getBuckets(this.api, this.jwt, bucketName)
   // }
   getBuckets = async () => {
-    return await getBuckets(this.jwt)
+    return await getBuckets(this.api, this.jwt)
   }
 
   getBucketList = async () => {
-    return await getBuckets(this.jwt)
+    return await getBuckets(this.api, this.jwt)
   }
   // getBucketInfo = async (bucketName) => {
-  //   return await getBuckets(this.jwt, bucketName)
+  //   return await getBuckets(this.api, this.jwt, bucketName)
   // }
 
   deleteBucket = async (bucketUid) => {
-    return await deleteBucket(this.jwt, bucketUid)
+    return await deleteBucket(this.api, this.jwt, bucketUid)
   }
 
   getFileList = async (bucketUid, params) => {
@@ -210,7 +235,7 @@ class mcsSDK {
     let offset = params.offset || 0
 
     // console.log('params:', { prefix, limit, offset })
-    let list = await getFileList(this.jwt, bucketUid, {
+    let list = await getFileList(this.api, this.jwt, bucketUid, {
       prefix,
       limit,
       offset,
@@ -226,7 +251,7 @@ class mcsSDK {
     let offset = params.offset || 0
 
     // console.log('params:', { prefix, limit, offset })
-    let list = await getFileList(this.jwt, bucketUid, {
+    let list = await getFileList(this.api, this.jwt, bucketUid, {
       prefix,
       limit,
       offset,
@@ -236,15 +261,15 @@ class mcsSDK {
   }
 
   getFileInfo = async (fileId) => {
-    return await getFileInfo(this.jwt, fileId)
+    return await getFileInfo(this.api, this.jwt, fileId)
   }
 
   deleteFile = async (fileId) => {
-    return await deleteFile(this.jwt, fileId)
+    return await deleteFile(this.api, this.jwt, fileId)
   }
 
   createFolder = async (bucketUid, folderName, prefix = '') => {
-    return await createFolder(this.jwt, bucketUid, folderName, prefix)
+    return await createFolder(this.api, this.jwt, bucketUid, folderName, prefix)
   }
 
   uploadToBucket = async (
@@ -254,6 +279,7 @@ class mcsSDK {
     options = { log: false },
   ) => {
     return await uploadToBucket(
+      this.api,
       this.jwt,
       filePath,
       bucketUid,
@@ -263,11 +289,11 @@ class mcsSDK {
   }
 
   downloadFile = async (fileId, outputDirectory = '.') => {
-    return await downloadFile(this.jwt, fileId, outputDirectory)
+    return await downloadFile(this.api, this.jwt, fileId, outputDirectory)
   }
 
   renameBucket = async (bucketUid, bucketName) => {
-    return await renameBucket(this.jwt, bucketUid, bucketName)
+    return await renameBucket(this.api, this.jwt, bucketUid, bucketName)
   }
 }
 

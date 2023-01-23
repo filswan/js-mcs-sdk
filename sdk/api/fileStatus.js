@@ -1,12 +1,11 @@
 const axios = require('axios')
-const { MCS_API } = require('../helper/constants')
 
-const getFileStatus = async (jwt, dealId) => {
+const getFileStatus = async (api, jwt, dealId) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
   }
   try {
-    const res = await axios.get(`${MCS_API}storage/deal/log/${dealId}`, config)
+    const res = await axios.get(`${api}/v1/storage/deal/log/${dealId}`, config)
     if (res?.data.status === 'error') {
       throw new Error(res.data.message)
     }
