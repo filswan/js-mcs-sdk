@@ -25,6 +25,9 @@ const {
 const { getJwt } = require('./helper/getJwt')
 
 class mcsSDK {
+  /**
+   * @constructor
+   */
   constructor(chainName, accessToken, apiKey, jwt, api) {
     this.version = packageJson.version
     this.accessToken = accessToken
@@ -38,8 +41,11 @@ class mcsSDK {
   /**
    * Initializes new MCS SDK instance
    *
+   * @param {string} accessToken - SDK Access Token
+   * @param {string} apiKey - SDK API Key
+   * @param {string} [chainName="polygon.mainnet"] - MCS environment (ex. polygon.mainnet or polygon.mumbai)
    * @param {string} privateKey - wallet private key
-   * @param {string} rpcUrl - endpoint to read and send data on the blockchain
+   * @param {string} [rpcUrl="https://polygon-rpc.com/"] - RPC url (must match chain name env)
    * @returns {Object} MCS SDK instance
    */
   static async initialize({
@@ -76,6 +82,11 @@ class mcsSDK {
     return new mcsSDK(chainName, accessToken, apiKey, jwt, api)
   }
 
+  /**
+   * maps chain name to chain id
+   * @param {string} chainName - MCS environment (ex. polygon.mainnet or polygon.mumbai)
+   * @returns {number} chain id
+   */
   mapChainName = (chainName) => {
     if (chainName == 'polygon.mainnet') {
       return 137
@@ -85,6 +96,11 @@ class mcsSDK {
     return -1
   }
 
+  /**
+   * Initialize web3.js
+   * @param {string} privateKey - wallet's private key
+   * @param {string} rpcUrl - RPC URL
+   */
   setupWeb3 = async (privateKey, rpcUrl = 'https://polygon-rpc.com/') => {
     this.web3 = new Web3(rpcUrl)
     const chainId = await this.web3.eth.getChainId()
@@ -104,11 +120,15 @@ class mcsSDK {
   }
 
   /**
-   * Uploads file(s) using MCS upload API
    *
-   * @param {[{fileName: string, file: Object}]} files - files should be file buffers, json stringify, or readstreams
-   * @param {{delay: number, duration: number, fileType: number}} [options]
-   * @returns {Array} Array of upload API responses
+   * @param {Object[]} files - the files to upload
+   * @param {string} files[].fileName - name of the file
+   * @param {file} files[].file - file contents
+   * @param {Object} [options] - extra options
+   * @param {number} [options.delay=1000] - delay in ms between upload API calls
+   * @param {number} [options.duration=525] - filecoin storage duration in days
+   * @param {number} [options.fileType=0] - fileType 1 files will be hidden from the UI
+   * @returns {Object[]}
    */
   upload = async (files, options) => {
     if (!this.web3Initialized) {
@@ -126,10 +146,9 @@ class mcsSDK {
 
   /**
    * Makes payment for unpaid files on MCS. Throws error if file is already paid.
-   *
-   * @param {Number} sourceFileUploadId
-   * @param {string} amount - pass amount as string to avoid BN precision errors
+   * @param {number} sourceFileUploadId
    * @param {string} size - file size in bytes
+   * @param {string} [amount=""] - pass amount as string to avoid BN precision errors
    * @returns {Object} payment transaction response
    */
   makePayment = async (sourceFileUploadId, size, amount = '') => {
@@ -152,8 +171,7 @@ class mcsSDK {
 
   /**
    * get filecoin status for file
-   *
-   * @param {Number} dealId
+   * @param {number} dealId
    * @returns {Object} file status on MCS
    */
   getFileStatus = async (dealId) => {
@@ -162,9 +180,12 @@ class mcsSDK {
 
   /**
    * Mints file as NFT availiable to view on Opensea
-   *
-   * @param {Number} sourceFileUploadId
-   * @param {{name: string, description: string, image: string, tx_hash: string}} nft
+   * @param {number} sourceFileUploadId
+   * @param {Object} nft - nft metadata
+   * @param {string} nft.name - name of nft
+   * @param {string} [nft.description] - nft description
+   * @param {string} image - link to nft asset, usually IPFS endpoint
+   * @param {string} [tx_hash] - payment tx hash
    * @returns {Object} mint info reponse object
    */
   mintAsset = async (sourceFileUploadId, nft, generateMetadata = true) => {
@@ -183,58 +204,76 @@ class mcsSDK {
 
   /**
    * List the user's uploaded files on MCS
-   *
-   * @param {string} [wallet] - shows files for an address
-   * @param {string} [fileName] - filter by file_name
-   * @param {number} [pageNumber=1]
-   * @param {number} [pageSize=10]
-   *
-   * @returns {Array} API list reponse
+   * @param {Object} params
+   * @param {string} [params.wallet] - shows files for an address
+   * @param {string} [params.fileName] - filter by file_name
+   * @param {number} [params.pageNumber=1]
+   * @param {number} [params.pageSize=10]
+   * @returns {Object[]} API list reponse
    */
   getDealList = async (params) => {
     if (!params) params = { wallet: this.walletAddress }
     return await getDealList(this.api, this.jwt, params)
   }
+
   /**
-   *
    * @param {Number} sourceFileUploadId
    * @param {Number} dealId - dealId can be found from listUploads
-   * @returns
+   * @returns {Object}
    */
   getFileDetails = async (sourceFileUploadId, dealId) => {
     return await getDealDetail(this.api, this.jwt, sourceFileUploadId, dealId)
   }
 
+  /**
+   * Create a MCS Bucket
+   * @param {string} bucketName - name of new bucket
+   * @returns {Object} - bucket data
+   */
   createBucket = async (bucketName) => {
     return await createBucket(this.api, this.jwt, bucketName)
   }
 
-  // //aliases
-  // getBucket = async (bucketName) => {
-  //   return await getBuckets(this.api, this.jwt, bucketName)
-  // }
+  /**
+   * Get bucket list
+   * @returns {Object[]} - bucket data
+   */
   getBuckets = async () => {
     return await getBuckets(this.api, this.jwt)
   }
 
+  /**
+   * Get bucket list
+   * @returns {Object[]} - bucket data
+   */
   getBucketList = async () => {
     return await getBuckets(this.api, this.jwt)
   }
-  // getBucketInfo = async (bucketName) => {
-  //   return await getBuckets(this.api, this.jwt, bucketName)
-  // }
 
+  /**
+   * Delete a MCS Bucket
+   * @param {string} bucketUid - bucket uid
+   * @returns {Object}
+   */
   deleteBucket = async (bucketUid) => {
     return await deleteBucket(this.api, this.jwt, bucketUid)
   }
 
+  /**
+   * Get file list
+   * @param {string} bucketUid - bucket uid
+   * @param {Object} params
+   * @param {string} [params.prefix=''] - gets file list from this path in the bucket
+   * @param {number} [params.limit=10] - limit the result list
+   * @param {number} [params.offset=0] - offset the results
+   * @returns {Object[]} - file data
+   */
   getFileList = async (bucketUid, params) => {
     if (!params) params = { prefix: '', limit: 10, offset: 0 }
     let prefix = params.prefix || ''
     let limit = params.limit || 10
     let offset = params.offset || 0
 
-    // console.log('params:', { prefix, limit, offset })
     let list = await getFileList(this.api, this.jwt, bucketUid, {
       prefix,
       limit,
@@ -244,6 +283,15 @@ class mcsSDK {
     return list.data
   }
 
+  /**
+   * Get file list
+   * @param {string} bucketUid - bucket uid
+   * @param {Object} params
+   * @param {string} [params.prefix=''] - gets file list from this path in the bucket
+   * @param {number} [params.limit=10] - limit the result list
+   * @param {number} [params.offset=0] - offset the results
+   * @returns {Object[]} - file data
+   */
   getFiles = async (bucketUid, params) => {
     if (!params) params = { prefix: '', limit: 10, offset: 0 }
     let prefix = params.prefix || ''
@@ -260,18 +308,42 @@ class mcsSDK {
     return list.data
   }
 
+  /**
+   * Get single file info
+   * @param {string} fileId - fileId
+   * @returns {Array} - file data
+   */
   getFileInfo = async (fileId) => {
     return await getFileInfo(this.api, this.jwt, fileId)
   }
 
+  /**
+   * Delete single file
+   * @param {string} fileId - fileId
+   * @returns {Array} - file data
+   */
   deleteFile = async (fileId) => {
     return await deleteFile(this.api, this.jwt, fileId)
   }
 
+  /**
+   * Create new folder
+   * @param {string} bucketUid - bucket uid
+   * @param {string} folderName - name for new folder
+   * @param {string} [prefix=''] - path in bucket for new folder
+   * @returns {Array} - folder data
+   */
   createFolder = async (bucketUid, folderName, prefix = '') => {
     return await createFolder(this.api, this.jwt, bucketUid, folderName, prefix)
   }
 
+  /**
+   * Create new folder
+   * @param {string} filePath - path to file
+   * @param {string} bucketUid - bucket uid
+   * @param {string} [folder=''] - path in bucket for file
+   * @returns {Array} - upload data
+   */
   uploadToBucket = async (
     filePath,
     bucketUid,
@@ -288,10 +360,20 @@ class mcsSDK {
     )
   }
 
+  /**
+   * Downloads a file from IPFS
+   * @param {string} fileId - file id
+   * @param {string} outputDirectory - where to download the file
+   */
   downloadFile = async (fileId, outputDirectory = '.') => {
     return await downloadFile(this.api, this.jwt, fileId, outputDirectory)
   }
 
+  /**
+   * Rename bucket
+   * @param {string} bucketUid - bucket uid
+   * @param {string} bucketName - new bucket name
+   */
   renameBucket = async (bucketUid, bucketName) => {
     return await renameBucket(this.api, this.jwt, bucketUid, bucketName)
   }
