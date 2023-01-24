@@ -69,6 +69,24 @@ main()
 
 ## 👨‍💻 Examples
 
+### Bucket Storage
+
+- Create a bucket
+
+  ```js
+  let bucketData = await mcs.createBucket(<BUCKET_NAME>)
+  console.log(bucketData)
+  ```
+
+- Upload a file to the bucket
+
+  ```js
+  let fileData = mcs.uploadToBucket(<FILE_PATH>, <BUCKET_UID>, prefix="")
+  console.log(fileData)
+  ```
+
+For more examples, please see the [SDK documentation.](https://docs.filswan.com/multi-chain-storage/developer-quickstart/sdk)
+
 ### Onchain Storage
 
 Onchain storage is designed for storing file information in the smart contract. It requires payment for each file.
@@ -95,24 +113,6 @@ To use certain Onchain Storage features (upload, payment, minting), you will nee
   let tx = await mcs.makePayment(<SOURCE_FILE_UPLOAD_ID>, <FILE_SIZE>)
   console.log(transaction hash: ' + tx.transactionHash)
   ```
-
-### Bucket Storage
-
-- Create a bucket
-
-  ```js
-  let bucketData = await mcs.createBucket(<BUCKET_NAME>)
-  console.log(bucketData)
-  ```
-
-- Upload a file to the bucket
-
-  ```js
-  let fileData = mcs.uploadToBucket(<FILE_PATH>, <BUCKET_UID>, prefix="")
-  console.log(fileData)
-  ```
-
-For more examples, please see the [SDK documentation.](https://docs.filswan.com/multi-chain-storage/developer-quickstart/sdk)
 
 <a name="functions"></a>
 
