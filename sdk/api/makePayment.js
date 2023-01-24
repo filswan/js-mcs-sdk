@@ -14,7 +14,7 @@ const getFilePaymentStatus = async (api, jwt, sourceFileUploadId) => {
       config,
     )
     if (res?.data.status === 'error') {
-      throw new Error(res.data.message)
+      console.error(res.data.message)
     }
 
     return res?.data
@@ -45,7 +45,7 @@ const lockToken = async (
   let paymentStatus = filePaymentStatus.data.source_file_upload
 
   if (paymentStatus?.is_free || paymentStatus?.status != 'Pending') {
-    throw new Error('This file is already paid for.')
+    console.error('This file is already paid for.')
   }
   const wCid = paymentStatus.w_cid
 

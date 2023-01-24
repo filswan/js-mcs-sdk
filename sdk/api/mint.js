@@ -31,7 +31,7 @@ const postMintInfo = async (api, jwt, mintInfo) => {
     )
 
     if (res?.data.status === 'error') {
-      throw new Error(res.data.message)
+      console.error(res.data.message)
     }
 
     return res?.data

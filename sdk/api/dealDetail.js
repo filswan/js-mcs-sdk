@@ -10,7 +10,7 @@ const getDealDetail = async (api, jwt, sourceFileUploadId, dealId) => {
       config,
     )
     if (res?.data.status === 'error') {
-      throw new Error(res.data.message)
+      console.error(res.data.message)
     }
     return res.data
   } catch (err) {

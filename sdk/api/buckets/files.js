@@ -124,7 +124,7 @@ const uploadFile = async (api, jwt, filePath, bucketUid, folder, log) => {
 
   let res = await check(api, jwt, md5.filename, md5.hash, bucketUid, folder)
   if (res.status === 'error') {
-    throw new Error(res.message)
+    console.error(res.message)
   }
 
   await uploadChunks(api, jwt, filePath, md5.filename, md5.hash, log)
@@ -170,7 +170,7 @@ const downloadFile = async (api, jwt, fileId, outputDirectory) => {
     let file = await getFileInfo(api, jwt, fileId)
 
     if (!file) {
-      throw new Error('file not found')
+      console.error('file not found')
     }
 
     let name = outputDirectory.endsWith('/')
@@ -181,7 +181,7 @@ const downloadFile = async (api, jwt, fileId, outputDirectory) => {
 
     await fs.promises.writeFile(name, res.data, (err) => {
       if (err) {
-        throw new Error(err.message)
+        console.error(err.message)
       }
     })
     return { status: 'success' }

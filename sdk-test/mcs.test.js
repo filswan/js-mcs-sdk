@@ -65,7 +65,7 @@ describe('MCS SDK', function () {
     })
 
     it('Should pay for file', async () => {
-      await mcs.makePayment(sourceFileUploadId, '', size)
+      await mcs.makePayment(sourceFileUploadId, size)
     })
 
     it('Should mint NFT', async () => {

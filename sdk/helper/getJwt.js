@@ -9,7 +9,7 @@ const getJwt = async (api, accessToken, apiKey, loginNetwork) => {
     })
 
     if (response?.data.status === 'error') {
-      throw new Error(response.data.message)
+      console.error(response.data.message)
     }
 
     return response.data?.data

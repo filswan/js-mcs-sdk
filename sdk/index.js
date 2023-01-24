@@ -56,11 +56,11 @@ class mcsSDK {
     } else if (chainName == 'polygon.mumbai') {
       api = API.MCS_MUMBAI_API
     } else {
-      throw new Error('unknown chain name')
+      console.error('unknown chain name')
     }
 
     if (!accessToken || !apiKey) {
-      throw new Error(
+      console.error(
         'Missing access token/API key. Please check your parameters, or visit https://www.multichain.storage/ to generate an API key.',
       )
     }
@@ -91,7 +91,7 @@ class mcsSDK {
 
     if (chainId != this.mapChainName(this.chainName)) {
       this.web3Initialized = false
-      throw new Error(
+      console.error(
         `RPC Chain ID (${chainId}) does not match SDK chain name (${this.chainName})`,
       )
     }
@@ -112,7 +112,7 @@ class mcsSDK {
    */
   upload = async (files, options) => {
     if (!this.web3Initialized) {
-      throw new Error('web3 not setup, call setupWeb3 first')
+      console.error('web3 not setup, call setupWeb3 first')
     }
 
     return await mcsUpload(
@@ -132,9 +132,9 @@ class mcsSDK {
    * @param {string} size - file size in bytes
    * @returns {Object} payment transaction response
    */
-  makePayment = async (sourceFileUploadId, amount, size) => {
+  makePayment = async (sourceFileUploadId, size, amount = '') => {
     if (!this.web3Initialized) {
-      throw new Error('web3 not setup, call setupWeb3 first')
+      console.error('web3 not setup, call setupWeb3 first')
     }
 
     let tx = await lockToken(
