@@ -1,4 +1,3 @@
-const { BUCKETS_API } = require('../../helper/constants')
 const axios = require('axios')
 axios.defaults.maxBodyLength = Infinity
 const fs = require('fs')
@@ -32,7 +31,7 @@ let hashFile = async (file) => {
 }
 
 // Async function to upload a file in chunks
-let uploadChunks = async (jwt, filePath, fileName, hash, log) => {
+let uploadChunks = async (api, jwt, filePath, fileName, hash, log) => {
   const chunkSize = 10 * 1024 * 1024 //10MB
   const fileSize = fs.statSync(filePath).size
   let offset = 0
@@ -53,16 +52,12 @@ let uploadChunks = async (jwt, filePath, fileName, hash, log) => {
     formData.append('hash', hash)
 
     try {
-      const response = await axios.post(
-        `${BUCKETS_API}oss_file/upload`,
-        formData,
-        {
-          headers: {
-            ...formData.getHeaders(),
-            Authorization: `Bearer ${jwt}`,
-          },
+      const response = await axios.post(`${api}/v2/oss_file/upload`, formData, {
+        headers: {
+          ...formData.getHeaders(),
+          Authorization: `Bearer ${jwt}`,
         },
-      )
+      })
       if (log) console.log('uploaded chunk', chunkNum)
     } catch (err) {
       if (log) console.log(err.response?.data)
@@ -74,7 +69,7 @@ let uploadChunks = async (jwt, filePath, fileName, hash, log) => {
   }
 }
 
-let check = async (jwt, file, hash, bucket_uid, prefix) => {
+let check = async (api, jwt, file, hash, bucket_uid, prefix) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
   }
@@ -87,7 +82,7 @@ let check = async (jwt, file, hash, bucket_uid, prefix) => {
   }
 
   try {
-    let res = await axios.post(`${BUCKETS_API}oss_file/check`, body, config)
+    let res = await axios.post(`${api}/v2/oss_file/check`, body, config)
     return res.data
   } catch (err) {
     return err.response?.data
@@ -95,7 +90,7 @@ let check = async (jwt, file, hash, bucket_uid, prefix) => {
 }
 
 // Async function to merge the uploaded chunks into a single file
-let merge = async (jwt, file, hash, bucket_uid, prefix) => {
+let merge = async (api, jwt, file, hash, bucket_uid, prefix) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
   }
@@ -108,44 +103,44 @@ let merge = async (jwt, file, hash, bucket_uid, prefix) => {
   }
 
   try {
-    let res = await axios.post(`${BUCKETS_API}oss_file/merge`, body, config)
+    let res = await axios.post(`${api}/v2/oss_file/merge`, body, config)
     return res.data
   } catch (err) {
     return err.response?.data
   }
 }
 
-const uploadToBucket = async (jwt, filePath, bucketUid, folder, log) => {
+const uploadToBucket = async (api, jwt, filePath, bucketUid, folder, log) => {
   let stats = fs.lstatSync(filePath)
   if (stats.isFile()) {
-    return await uploadFile(jwt, filePath, bucketUid, folder, log)
+    return await uploadFile(api, jwt, filePath, bucketUid, folder, log)
   } else if (stats.isDirectory()) {
-    return await uploadDirectory(jwt, filePath, bucketUid, folder, log)
+    return await uploadDirectory(api, jwt, filePath, bucketUid, folder, log)
   }
 }
 
-const uploadFile = async (jwt, filePath, bucketUid, folder, log) => {
+const uploadFile = async (api, jwt, filePath, bucketUid, folder, log) => {
   let md5 = await hashFile(filePath)
 
-  let res = await check(jwt, md5.filename, md5.hash, bucketUid, folder)
+  let res = await check(api, jwt, md5.filename, md5.hash, bucketUid, folder)
   if (res.status === 'error') {
-    throw new Error(res.message)
+    console.error(res.message)
   }
 
-  await uploadChunks(jwt, filePath, md5.filename, md5.hash, log)
+  await uploadChunks(api, jwt, filePath, md5.filename, md5.hash, log)
   if (!res.data.ipfs_is_exist && !res.data.file_is_exist) {
-    res = await merge(jwt, md5.filename, md5.hash, bucketUid, folder)
+    res = await merge(api, jwt, md5.filename, md5.hash, bucketUid, folder)
   }
 
   return res
 }
 
-const uploadDirectory = async (jwt, filePath, bucketUid, folder, log) => {
+const uploadDirectory = async (api, jwt, filePath, bucketUid, folder, log) => {
   let pathWithoutSlash =
     filePath.slice(-1) === '/' ? filePath.slice(0, -1) : filePath
   let folderName = getChildFile(pathWithoutSlash)
 
-  let folderRes = await createFolder(jwt, bucketUid, folderName, folder)
+  let folderRes = await createFolder(api, jwt, bucketUid, folderName, folder)
   if (!folderRes) {
     return
   }
@@ -156,6 +151,7 @@ const uploadDirectory = async (jwt, filePath, bucketUid, folder, log) => {
   for (let i = 0; i < files.length; i++) {
     if (log) console.log(`uploading ${files[i]}...`)
     let uploadRes = await uploadToBucket(
+      api,
       jwt,
       `${pathWithoutSlash}/${files[i]}`,
       bucketUid,
@@ -169,22 +165,23 @@ const uploadDirectory = async (jwt, filePath, bucketUid, folder, log) => {
   return res
 }
 
-const downloadFile = async (jwt, fileId, outputDirectory) => {
+const downloadFile = async (api, jwt, fileId, outputDirectory) => {
   try {
-    let file = await getFileInfo(jwt, fileId)
+    let file = await getFileInfo(api, jwt, fileId)
 
     if (!file) {
-      throw new Error('file not found')
+      console.error('file not found')
     }
 
     let name = outputDirectory.endsWith('/')
-      ? outputDirectory + file.data.Name
-      : outputDirectory + '/' + file.data.Name
+      ? outputDirectory + file.data.name
+      : outputDirectory + '/' + file.data.name
 
-    let res = await request(file.data.IpfsUrl)
+    let res = await request(file.data.ipfs_url)
+
     await fs.promises.writeFile(name, res.data, (err) => {
       if (err) {
-        throw new Error(err.message)
+        console.error(err.message)
       }
     })
     return { status: 'success' }
@@ -193,13 +190,13 @@ const downloadFile = async (jwt, fileId, outputDirectory) => {
   }
 }
 
-const getFileList = async (jwt, bucketUid, { prefix, limit, offset }) => {
+const getFileList = async (api, jwt, bucketUid, { prefix, limit, offset }) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
   }
   try {
     const res = await axios.get(
-      `${BUCKETS_API}oss_file/get_file_list?prefix=${prefix}&bucket_uid=${bucketUid}&limit=${limit}&offset=${offset}`,
+      `${api}/v2/oss_file/get_file_list?prefix=${prefix}&bucket_uid=${bucketUid}&limit=${limit}&offset=${offset}`,
       config,
     )
 
@@ -209,14 +206,14 @@ const getFileList = async (jwt, bucketUid, { prefix, limit, offset }) => {
   }
 }
 
-const getFileInfo = async (jwt, fileId) => {
+const getFileInfo = async (api, jwt, fileId) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
   }
 
   try {
     const res = await axios.get(
-      `${BUCKETS_API}oss_file/get_file_info?file_id=${fileId}`,
+      `${api}/v2/oss_file/get_file_info?file_id=${fileId}`,
       config,
     )
 
@@ -226,14 +223,14 @@ const getFileInfo = async (jwt, fileId) => {
   }
 }
 
-const deleteFile = async (jwt, fileId) => {
+const deleteFile = async (api, jwt, fileId) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
   }
 
   try {
     const res = await axios.get(
-      `${BUCKETS_API}oss_file/delete?file_id=${fileId}`,
+      `${api}/v2/oss_file/delete?file_id=${fileId}`,
       config,
     )
 
@@ -243,14 +240,14 @@ const deleteFile = async (jwt, fileId) => {
   }
 }
 
-const createFolder = async (jwt, bucketUid, folderName, prefix) => {
+const createFolder = async (api, jwt, bucketUid, folderName, prefix) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
   }
 
   try {
     const res = await axios.post(
-      `${BUCKETS_API}oss_file/create_folder`,
+      `${api}/v2/oss_file/create_folder`,
       {
         file_name: folderName,
         prefix,

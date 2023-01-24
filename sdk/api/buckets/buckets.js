@@ -1,12 +1,11 @@
-const { BUCKETS_API } = require('../../helper/constants')
 const axios = require('axios')
 
-const getBuckets = async (jwt) => {
+const getBuckets = async (api, jwt) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
   }
   try {
-    const res = await axios.get(`${BUCKETS_API}bucket/get_bucket_list`, config)
+    const res = await axios.get(`${api}/v2/bucket/get_bucket_list`, config)
 
     return res.data
   } catch (err) {
@@ -14,14 +13,14 @@ const getBuckets = async (jwt) => {
   }
 }
 
-const createBucket = async (jwt, bucketName) => {
+const createBucket = async (api, jwt, bucketName) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
   }
 
   try {
     const res = await axios.post(
-      `${BUCKETS_API}bucket/create/`,
+      `${api}/v2/bucket/create/`,
       { bucket_name: `${bucketName.trim()}` },
       config,
     )
@@ -32,14 +31,14 @@ const createBucket = async (jwt, bucketName) => {
   }
 }
 
-const deleteBucket = async (jwt, bucketUid) => {
+const deleteBucket = async (api, jwt, bucketUid) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
   }
 
   try {
     const res = await axios.get(
-      `${BUCKETS_API}bucket/delete?bucket_uid=${bucketUid}`,
+      `${api}/v2/bucket/delete?bucket_uid=${bucketUid}`,
       config,
     )
 
@@ -49,14 +48,14 @@ const deleteBucket = async (jwt, bucketUid) => {
   }
 }
 
-const renameBucket = async (jwt, bucketUid, newName) => {
+const renameBucket = async (api, jwt, bucketUid, newName) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
   }
 
   try {
     const res = await axios.post(
-      `${BUCKETS_API}bucket/rename`,
+      `${api}/v2/bucket/rename`,
       {
         bucket_name: newName,
         bucket_uid: bucketUid,

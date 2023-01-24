@@ -3,6 +3,7 @@ const axios = require('axios')
 const { getParams } = require('./params')
 
 const getAveragePrice = async (
+  api,
   jwt,
   walletAddress,
   fileSize,
@@ -17,7 +18,7 @@ const getAveragePrice = async (
 
   // get price in FIL/GiB/year
   const storageRes = await axios.get(
-    `${STORAGE_API}stats/storage?wallet_address=${walletAddress}`,
+    `${STORAGE_API}/stats/storage?wallet_address=${walletAddress}`,
     config,
   )
 
@@ -26,7 +27,7 @@ const getAveragePrice = async (
     : []
   if (cost[0]) storageCostPerUnit = cost[0]
 
-  const params = await getParams()
+  const params = await getParams(api)
   billingPrice = params.filecoin_price / 10 ** 8
 
   let price =
