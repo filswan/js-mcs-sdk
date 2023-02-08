@@ -250,31 +250,38 @@ class mcsSDK {
     return await getBuckets(this.api, this.jwt)
   }
 
+  getBucket = async (bucketName) => {
+    let list = (await this.getBucketList()).data
+    return list.find((b) => (b.bucket_name = bucketName))
+  }
+
   /**
    * Delete a MCS Bucket
-   * @param {string} bucketUid - bucket uid
+   * @param {string} bucketName - bucket name
    * @returns {Object}
    */
-  deleteBucket = async (bucketUid) => {
-    return await deleteBucket(this.api, this.jwt, bucketUid)
+  deleteBucket = async (bucketName) => {
+    let bucket = await this.getBucket(bucketName)
+    return await deleteBucket(this.api, this.jwt, bucket.bucket_uid)
   }
 
   /**
    * Get file list
-   * @param {string} bucketUid - bucket uid
+   * @param {string} bucketName - bucket name
    * @param {Object} params
    * @param {string} [params.prefix=''] - gets file list from this path in the bucket
    * @param {number} [params.limit=10] - limit the result list
    * @param {number} [params.offset=0] - offset the results
    * @returns {Object[]} - file data
    */
-  getFileList = async (bucketUid, params) => {
+  getFileList = async (bucketName, params) => {
+    let bucket = await this.getBucket(bucketName)
     if (!params) params = { prefix: '', limit: 10, offset: 0 }
     let prefix = params.prefix || ''
     let limit = params.limit || 10
     let offset = params.offset || 0
 
-    let list = await getFileList(this.api, this.jwt, bucketUid, {
+    let list = await getFileList(this.api, this.jwt, bucket.bucket_uid, {
       prefix,
       limit,
       offset,
@@ -285,21 +292,22 @@ class mcsSDK {
 
   /**
    * Get file list
-   * @param {string} bucketUid - bucket uid
+   * @param {string} bucketName - bucket name
    * @param {Object} params
    * @param {string} [params.prefix=''] - gets file list from this path in the bucket
    * @param {number} [params.limit=10] - limit the result list
    * @param {number} [params.offset=0] - offset the results
    * @returns {Object[]} - file data
    */
-  getFiles = async (bucketUid, params) => {
+  getFiles = async (bucketName, params) => {
+    let bucket = await this.getBucket(bucketName)
     if (!params) params = { prefix: '', limit: 10, offset: 0 }
     let prefix = params.prefix || ''
     let limit = params.limit || 10
     let offset = params.offset || 0
 
     // console.log('params:', { prefix, limit, offset })
-    let list = await getFileList(this.api, this.jwt, bucketUid, {
+    let list = await getFileList(this.api, this.jwt, bucket.bucket_uid, {
       prefix,
       limit,
       offset,
