@@ -321,8 +321,9 @@ class mcsSDK {
    * @param {string} fileId - fileId
    * @returns {Array} - file data
    */
-  getFileInfo = async (fileId) => {
-    return await getFileInfo(this.api, this.jwt, fileId)
+  getFileInfo = async (bucketName, objectName) => {
+    let bucket = await this.getBucket(bucketName)
+    return await getFileInfo(this.api, this.jwt, bucket.bucket_uid, objectName)
   }
 
   /**
@@ -330,40 +331,43 @@ class mcsSDK {
    * @param {string} fileId - fileId
    * @returns {Array} - file data
    */
-  deleteFile = async (fileId) => {
-    return await deleteFile(this.api, this.jwt, fileId)
+  deleteFile = async (bucketName, objectName) => {
+    let file = await this.getFileInfo(bucketName, objectName)
+    return await deleteFile(this.api, this.jwt, file.data.id)
   }
 
   /**
    * Create new folder
-   * @param {string} bucketUid - bucket uid
+   * @param {string} bucketName - bucket name
    * @param {string} folderName - name for new folder
    * @param {string} [prefix=''] - path in bucket for new folder
    * @returns {Array} - folder data
    */
-  createFolder = async (bucketUid, folderName, prefix = '') => {
-    return await createFolder(this.api, this.jwt, bucketUid, folderName, prefix)
+  createFolder = async (bucketName, objectName) => {
+    let bucket = await this.getBucket(bucketName)
+    return await createFolder(this.api, this.jwt, bucket.bucket_uid, objectName)
   }
 
   /**
    * Create new folder
+   * @param {string} bucketName - bucket uid
+   * @param {string} objectName - path in bucket for file
    * @param {string} filePath - path to file
-   * @param {string} bucketUid - bucket uid
-   * @param {string} [folder=''] - path in bucket for file
    * @returns {Array} - upload data
    */
   uploadToBucket = async (
+    bucketName,
+    objectName,
     filePath,
-    bucketUid,
-    folder = '',
     options = { log: false },
   ) => {
+    let bucket = await this.getBucket(bucketName)
     return await uploadToBucket(
       this.api,
       this.jwt,
+      bucket.bucket_uid,
+      objectName,
       filePath,
-      bucketUid,
-      folder,
       options.log ?? false,
     )
   }
@@ -373,17 +377,25 @@ class mcsSDK {
    * @param {string} fileId - file id
    * @param {string} outputDirectory - where to download the file
    */
-  downloadFile = async (fileId, outputDirectory = '.') => {
-    return await downloadFile(this.api, this.jwt, fileId, outputDirectory)
+  downloadFile = async (bucketName, objectName, outputDirectory = '.') => {
+    let bucket = await this.getBucket(bucketName)
+    return await downloadFile(
+      this.api,
+      this.jwt,
+      bucket.bucket_uid,
+      objectName,
+      outputDirectory,
+    )
   }
 
   /**
    * Rename bucket
-   * @param {string} bucketUid - bucket uid
-   * @param {string} bucketName - new bucket name
+   * @param {string} oldName - bucket uid
+   * @param {string} newName - new bucket name
    */
-  renameBucket = async (bucketUid, bucketName) => {
-    return await renameBucket(this.api, this.jwt, bucketUid, bucketName)
+  renameBucket = async (oldName, newName) => {
+    let bucket = await this.getBucket(oldName)
+    return await renameBucket(this.api, this.jwt, bucket.bucket_uid, newName)
   }
 }
 

@@ -12,6 +12,10 @@ let getChildFile = (path) => {
   return pathArray[pathArray.length - 1]
 }
 
+let getPrefix = (path) => {
+  return path.substring(0, path.lastIndexOf('/'))
+}
+
 // Async function to generate the hash of a file
 let hashFile = async (file) => {
   return new Promise((resolve) => {
@@ -110,37 +114,69 @@ let merge = async (api, jwt, file, hash, bucket_uid, prefix) => {
   }
 }
 
-const uploadToBucket = async (api, jwt, filePath, bucketUid, folder, log) => {
+const uploadToBucket = async (
+  api,
+  jwt,
+  bucketUid,
+  objectName,
+  filePath,
+  log,
+) => {
   let stats = fs.lstatSync(filePath)
   if (stats.isFile()) {
-    return await uploadFile(api, jwt, filePath, bucketUid, folder, log)
+    return await uploadFile(api, jwt, bucketUid, objectName, filePath, log)
   } else if (stats.isDirectory()) {
-    return await uploadDirectory(api, jwt, filePath, bucketUid, folder, log)
+    return await uploadDirectory(api, jwt, bucketUid, objectName, filePath, log)
   }
 }
 
-const uploadFile = async (api, jwt, filePath, bucketUid, folder, log) => {
+const uploadFile = async (api, jwt, bucketUid, objectName, filePath, log) => {
   let md5 = await hashFile(filePath)
 
-  let res = await check(api, jwt, md5.filename, md5.hash, bucketUid, folder)
+  let res = await check(
+    api,
+    jwt,
+    getChildFile(objectName),
+    md5.hash,
+    bucketUid,
+    getPrefix(objectName),
+  )
+
   if (res.status === 'error') {
     console.error(res.message)
   }
 
-  await uploadChunks(api, jwt, filePath, md5.filename, md5.hash, log)
+  await uploadChunks(
+    api,
+    jwt,
+    filePath,
+    getChildFile(objectName),
+    md5.hash,
+    log,
+  )
   if (!res.data.ipfs_is_exist && !res.data.file_is_exist) {
-    res = await merge(api, jwt, md5.filename, md5.hash, bucketUid, folder)
+    res = await merge(
+      api,
+      jwt,
+      getChildFile(objectName),
+      md5.hash,
+      bucketUid,
+      getPrefix(objectName),
+    )
   }
 
   return res
 }
 
-const uploadDirectory = async (api, jwt, filePath, bucketUid, folder, log) => {
-  let pathWithoutSlash =
-    filePath.slice(-1) === '/' ? filePath.slice(0, -1) : filePath
-  let folderName = getChildFile(pathWithoutSlash)
-
-  let folderRes = await createFolder(api, jwt, bucketUid, folderName, folder)
+const uploadDirectory = async (
+  api,
+  jwt,
+  bucketUid,
+  objectName,
+  filePath,
+  log,
+) => {
+  let folderRes = await createFolder(api, jwt, bucketUid, objectName)
   if (!folderRes) {
     return
   }
@@ -153,9 +189,9 @@ const uploadDirectory = async (api, jwt, filePath, bucketUid, folder, log) => {
     let uploadRes = await uploadToBucket(
       api,
       jwt,
-      `${pathWithoutSlash}/${files[i]}`,
       bucketUid,
-      `${folder ? folder + '/' : ''}${folderName}`,
+      `${objectName}/${files[i]}`,
+      `${filePath}/${files[i]}`,
       log,
     )
 
@@ -165,9 +201,15 @@ const uploadDirectory = async (api, jwt, filePath, bucketUid, folder, log) => {
   return res
 }
 
-const downloadFile = async (api, jwt, fileId, outputDirectory) => {
+const downloadFile = async (
+  api,
+  jwt,
+  bucketUid,
+  objectName,
+  outputDirectory,
+) => {
   try {
-    let file = await getFileInfo(api, jwt, fileId)
+    let file = await getFileInfo(api, jwt, bucketUid, objectName)
 
     if (!file) {
       console.error('file not found')
@@ -206,14 +248,14 @@ const getFileList = async (api, jwt, bucketUid, { prefix, limit, offset }) => {
   }
 }
 
-const getFileInfo = async (api, jwt, fileId) => {
+const getFileInfo = async (api, jwt, bucketUid, objectName) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
   }
 
   try {
     const res = await axios.get(
-      `${api}/v2/oss_file/get_file_info?file_id=${fileId}`,
+      `${api}/v2/oss_file/get_file_by_object_name?bucket_uid=${bucketUid}&object_name=${objectName}`,
       config,
     )
 
@@ -240,10 +282,13 @@ const deleteFile = async (api, jwt, fileId) => {
   }
 }
 
-const createFolder = async (api, jwt, bucketUid, folderName, prefix) => {
+const createFolder = async (api, jwt, bucketUid, objectName) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
   }
+
+  let folderName = getChildFile(objectName)
+  let prefix = getPrefix(objectName)
 
   try {
     const res = await axios.post(
