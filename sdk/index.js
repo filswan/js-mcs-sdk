@@ -384,7 +384,7 @@ class mcsSDK {
     bucketName,
     objectName,
     filePath,
-    options = { log: false },
+    replace = false,
   ) => {
     let bucket = await this.getBucket(bucketName)
     return await uploadToBucket(
@@ -393,7 +393,7 @@ class mcsSDK {
       bucket.bucket_uid,
       objectName,
       filePath,
-      options.log ?? false,
+      replace,
     )
   }
 
