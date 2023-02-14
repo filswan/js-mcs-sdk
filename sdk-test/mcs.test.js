@@ -46,11 +46,12 @@ describe('MCS SDK', function () {
 
   it('Should setup web3', async () => {
     expect(mcs.walletAddress).to.be.undefined
-    await mcs.setupWeb3(process.env.PRIVATE_KEY)
+    await mcs.setupWeb3(process.env.PRIVATE_KEY, process.env.RPC_URL)
+    console.log('wallet address:', mcs.walletAddress)
     expect(mcs.walletAddress)
   })
 
-  xdescribe('Onchain Storage functions', () => {
+  describe('Onchain Storage functions', () => {
     it('Should upload a file', async () => {
       const testFile = JSON.stringify({ address: mcs.walletAddress })
       const fileArray = [

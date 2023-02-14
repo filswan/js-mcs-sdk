@@ -27,7 +27,7 @@ const getAveragePrice = async (
     : []
   if (cost[0]) storageCostPerUnit = cost[0]
 
-  const params = await getParams(api)
+  const params = await getParams(api, jwt)
   billingPrice = params.filecoin_price / 10 ** 8
 
   let price =

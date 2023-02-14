@@ -1,13 +1,15 @@
 const packageJson = require('./package.json')
 const Web3 = require('web3')
 
-const API = require('./helper/constants')
-const { lockToken } = require('./api/makePayment')
-const { getDealDetail } = require('./api/dealDetail')
-const { mint, createCollection } = require('./api/mint')
-const { mcsUpload } = require('./api/upload')
-const { getFileStatus } = require('./api/fileStatus')
-const { getDealList } = require('./api/dealList')
+const API = require('./utils/constants')
+const { lockToken } = require('./api/onchain/makePayment')
+const { mint, createCollection } = require('./api/onchain/mint')
+const { mcsUpload } = require('./api/onchain/upload')
+const {
+  getDealDetail,
+  getDealList,
+  getFileStatus,
+} = require('./api/onchain/deals')
 const {
   getBuckets,
   createBucket,
@@ -22,7 +24,7 @@ const {
   deleteFile,
   createFolder,
 } = require('./api/buckets/files')
-const { getJwt } = require('./helper/getJwt')
+const { getJwt } = require('./utils/getJwt')
 
 class mcsSDK {
   /**
@@ -59,7 +61,7 @@ class mcsSDK {
     let api
     if (chainName === 'polygon.mainnet') {
       api = API.MCS_API
-    } else if (chainName == 'polygon.mumbai') {
+    } else if (chainName === 'polygon.mumbai') {
       api = API.MCS_MUMBAI_API
     } else {
       console.error('unknown chain name')
