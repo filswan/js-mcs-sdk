@@ -4,7 +4,7 @@ const Web3 = require('web3')
 const API = require('./helper/constants')
 const { lockToken } = require('./api/makePayment')
 const { getDealDetail } = require('./api/dealDetail')
-const { mint } = require('./api/mint')
+const { mint, createCollection } = require('./api/mint')
 const { mcsUpload } = require('./api/upload')
 const { getFileStatus } = require('./api/fileStatus')
 const { getDealList } = require('./api/dealList')
@@ -135,13 +135,7 @@ class mcsSDK {
       console.error('web3 not setup, call setupWeb3 first')
     }
 
-    return await mcsUpload(
-      this.api,
-      this.walletAddress,
-      this.jwt,
-      files,
-      options,
-    )
+    return await mcsUpload(this.api, this.jwt, files, options)
   }
 
   /**
@@ -188,7 +182,16 @@ class mcsSDK {
    * @param {string} [tx_hash] - payment tx hash
    * @returns {Object} mint info reponse object
    */
-  mintAsset = async (sourceFileUploadId, nft, generateMetadata = true) => {
+  mintAsset = async (
+    sourceFileUploadId,
+    nft = {},
+    collectionAddress = undefined,
+    recipient = this.walletAddress,
+    quantity = 1,
+  ) => {
+    if (!this.web3Initialized) {
+      console.error('web3 not setup, call setupWeb3 first')
+    }
     return await mint(
       this.api,
       this.jwt,
@@ -198,7 +201,29 @@ class mcsSDK {
         ? sourceFileUploadId.parseInt()
         : sourceFileUploadId,
       nft,
-      generateMetadata,
+      collectionAddress,
+      recipient,
+      quantity,
+    )
+  }
+
+  /**
+   * Creates a new NFT collection
+   * @param {Object} collection - nft metadata
+   * @param {string} collection.name - name of nft
+   * @param {string} [collection.description] - nft description
+   * @param {string} [collection.image] - link to collection asset, usually IPFS endpoint
+   */
+  createCollection = async (collection) => {
+    if (!this.web3Initialized) {
+      console.error('web3 not setup, call setupWeb3 first')
+    }
+    return await createCollection(
+      this.api,
+      this.jwt,
+      this.web3,
+      this.walletAddress,
+      collection,
     )
   }
 
@@ -359,7 +384,7 @@ class mcsSDK {
     bucketName,
     objectName,
     filePath,
-    options = { log: false },
+    replace = false,
   ) => {
     let bucket = await this.getBucket(bucketName)
     return await uploadToBucket(
@@ -368,7 +393,7 @@ class mcsSDK {
       bucket.bucket_uid,
       objectName,
       filePath,
-      options.log ?? false,
+      replace,
     )
   }
 

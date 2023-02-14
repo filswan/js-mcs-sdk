@@ -201,7 +201,7 @@ describe('MCS SDK', function () {
         expect(bucketInfo.file_number).to.equal(3)
       })
 
-      xit('Should delete the folder', async () => {
+      it('Should delete the folder', async () => {
         let res = await mcs.deleteFile(bucketName, 'test-folder')
         let updatedList = await mcs.getFileList(bucketName)
         expect(res.status).to.equal('success')

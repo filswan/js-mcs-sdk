@@ -8,14 +8,12 @@ const uploadPromise = (
   jwt,
   fileName,
   file,
-  wallet_address,
   duration = 525,
   file_type = '0',
 ) => {
   const form = new FormData()
   form.append('duration', duration)
   form.append('file', file, fileName)
-  form.append('wallet_address', wallet_address)
   form.append('file_type', file_type)
 
   const res = axios.post(`${api}/v1/storage/ipfs/upload`, form, {
@@ -32,7 +30,7 @@ const uploadPromise = (
   return res
 }
 
-const mcsUpload = async (api, address, jwt, files, options) => {
+const mcsUpload = async (api, jwt, files, options) => {
   const delayIncrement = parseInt(options?.delay) || 1000
   let apiDelay = 0
 
@@ -44,7 +42,6 @@ const mcsUpload = async (api, address, jwt, files, options) => {
         jwt,
         file.fileName,
         file.file,
-        address,
         options?.duration,
         options?.fileType || 0,
       ).then((res) => {

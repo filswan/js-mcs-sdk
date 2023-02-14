@@ -1,7 +1,41 @@
-const minterABI = require('../abi/SwanNFT.json')
+const factoryABI = require('../abi/CollectionFactory.json')
 const axios = require('axios')
 const { mcsUpload } = require('./upload')
 const { getParams } = require('../helper/params')
+
+const createCollection = async (api, jwt, web3, payer, collectionJson) => {
+  const uploadResponse = await mcsUpload(
+    api,
+    jwt,
+    [{ fileName: collectionJson.name, file: JSON.stringify(collectionJson) }],
+    { fileType: 1 },
+  )
+
+  let collection_uri = uploadResponse.pop().data.ipfs_url
+
+  const params = await getParams(api)
+  const factoryAddress = params.nft_collection_factory_address
+  const factoryContract = new web3.eth.Contract(factoryABI, factoryAddress)
+
+  const optionsObj = {
+    from: payer,
+    gas: params.gas_limit,
+    gasPrice: await web3.eth.getGasPrice(),
+  }
+
+  const createTx = await factoryContract.methods
+    .createCollection(collection_uri)
+    .send(optionsObj)
+
+  const collectionAddress =
+    createTx.events.CreateCollection.returnValues.collectionAddress
+
+  return {
+    ...collectionJson,
+    txHash: createTx.transactionHash,
+    collectionAddress,
+  }
+}
 
 const getPaymentInfo = async (api, jwt, sourceFileUploadId) => {
   const config = {
@@ -14,6 +48,7 @@ const getPaymentInfo = async (api, jwt, sourceFileUploadId) => {
     )
     return res?.data
   } catch (err) {
+    return err
     // Handle Error Here
     console.error(err)
   }
@@ -36,6 +71,7 @@ const postMintInfo = async (api, jwt, mintInfo) => {
 
     return res?.data
   } catch (err) {
+    console.error(err)
     if (err.response?.data?.status === 'error') {
       console.error(err.response.data?.message)
     } else {
@@ -51,30 +87,27 @@ const mint = async (
   payer,
   sourceFileUploadId,
   nftObj,
-  generateMetadata,
+  collectionAddress,
+  recipient,
+  quantity,
 ) => {
-  let nft_uri = nftObj // if user did not wish to generate metadata
+  const paymentInfo = await getPaymentInfo(api, jwt, sourceFileUploadId)
+  const txHash = paymentInfo?.data?.tx_hash || ''
 
-  if (generateMetadata) {
-    const paymentInfo = await getPaymentInfo(api, jwt, sourceFileUploadId)
-    const txHash = paymentInfo?.data?.tx_hash || ''
+  let nft = { ...nftObj, tx_hash: txHash }
 
-    let nft = { ...nftObj, tx_hash: txHash }
+  const uploadResponse = await mcsUpload(
+    api,
+    jwt,
+    [{ fileName: nft.name, file: JSON.stringify(nft) }],
+    { fileType: 1 },
+  )
 
-    const uploadResponse = await mcsUpload(
-      api,
-      payer,
-      jwt,
-      [{ fileName: nft.name, file: JSON.stringify(nft) }],
-      { fileType: 1 },
-    )
-
-    nft_uri = uploadResponse.pop().data.ipfs_url
-  }
+  let nft_uri = uploadResponse.pop().data.ipfs_url
 
   const params = await getParams(api)
-  const mintAddress = params.mint_contract_address
-  const mintContract = new web3.eth.Contract(minterABI, mintAddress)
+  const factoryAddress = params.nft_collection_factory_address
+  const factoryContract = new web3.eth.Contract(factoryABI, factoryAddress)
 
   const optionsObj = {
     from: payer,
@@ -82,8 +115,13 @@ const mint = async (
     gasPrice: await web3.eth.getGasPrice(),
   }
 
-  const mintTx = await mintContract.methods
-    .mintUnique(payer, nft_uri)
+  const mintTx = await factoryContract.methods
+    .mint(
+      collectionAddress ?? params.default_nft_collection_address,
+      recipient,
+      quantity,
+      nft_uri,
+    )
     .send(optionsObj)
 
   const tokenId = mintTx.events.TransferSingle.returnValues.id
@@ -92,7 +130,7 @@ const mint = async (
     source_file_upload_id: sourceFileUploadId,
     tx_hash: mintTx.transactionHash,
     token_id: parseInt(tokenId),
-    mint_address: mintAddress,
+    mint_address: collectionAddress ?? params.default_nft_collection_address,
   }
 
   const mintInfoResponse = await postMintInfo(api, jwt, mintInfo)
@@ -100,4 +138,4 @@ const mint = async (
   return mintInfoResponse
 }
 
-module.exports = { mint }
+module.exports = { mint, createCollection }
