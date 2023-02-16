@@ -37,6 +37,23 @@ const createCollection = async (api, jwt, web3, payer, collectionJson) => {
   }
 }
 
+const getCollections = async (api, jwt) => {
+  const config = {
+    headers: { Authorization: `Bearer ${jwt}` },
+  }
+  try {
+    const res = await axios.get(
+      `${api}/v1/storage/mint/nft_collections`,
+      config,
+    )
+    return res?.data
+  } catch (err) {
+    return err
+    // Handle Error Here
+    console.error(err)
+  }
+}
+
 const getPaymentInfo = async (api, jwt, sourceFileUploadId) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
@@ -138,4 +155,4 @@ const mint = async (
   return mintInfoResponse
 }
 
-module.exports = { mint, createCollection }
+module.exports = { mint, createCollection, getCollections }
