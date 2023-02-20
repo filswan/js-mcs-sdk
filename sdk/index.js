@@ -3,7 +3,12 @@ const Web3 = require('web3')
 
 const API = require('./utils/constants')
 const { lockToken } = require('./api/onchain/makePayment')
-const { mint, createCollection, getCollections } = require('./api/onchain/mint')
+const {
+  mint,
+  createCollection,
+  getCollections,
+  getMintInfo,
+} = require('./api/onchain/mint')
 const { mcsUpload } = require('./api/onchain/upload')
 const {
   getDealDetail,
@@ -231,6 +236,10 @@ class mcsSDK {
 
   getCollections = async () => {
     return await getCollections(this.api, this.jwt)
+  }
+
+  getMintInfo = async (sourceFileUploadId) => {
+    return await getMintInfo(this.api, this.jwt, sourceFileUploadId)
   }
 
   /**

@@ -30,10 +30,28 @@ const createCollection = async (api, jwt, web3, payer, collectionJson) => {
   const collectionAddress =
     createTx.events.CreateCollection.returnValues.collectionAddress
 
-  return {
+  let collectionInfo = {
     ...collectionJson,
     txHash: createTx.transactionHash,
-    collectionAddress,
+    address: collectionAddress,
+  }
+
+  await postCollectionInfo(api, jwt, collectionInfo)
+
+  return collectionInfo
+}
+
+const getMintInfo = async (api, jwt, id) => {
+  const config = {
+    headers: { Authorization: `Bearer ${jwt}` },
+  }
+  try {
+    const res = await axios.get(`${api}/v1/storage/mint/info/${id}`, config)
+    return res?.data
+  } catch (err) {
+    return err
+    // Handle Error Here
+    console.error(err)
   }
 }
 
@@ -71,6 +89,32 @@ const getPaymentInfo = async (api, jwt, sourceFileUploadId) => {
   }
 }
 
+const postCollectionInfo = async (api, jwt, collectionInfo) => {
+  const config = {
+    headers: { Authorization: `Bearer ${jwt}` },
+  }
+  try {
+    const res = await axios.post(
+      `${api}/v1/storage/mint/nft_collection`,
+      collectionInfo,
+      config,
+    )
+
+    if (res?.data.status === 'error') {
+      console.error(res.data.message)
+    }
+
+    return res?.data
+  } catch (err) {
+    console.error(err)
+    if (err.response?.data?.status === 'error') {
+      console.error(err.response.data?.message)
+    } else {
+      console.error(err)
+    }
+  }
+}
+
 const postMintInfo = async (api, jwt, mintInfo) => {
   const config = {
     headers: { Authorization: `Bearer ${jwt}` },
@@ -94,6 +138,21 @@ const postMintInfo = async (api, jwt, mintInfo) => {
     } else {
       console.error(err)
     }
+  }
+}
+
+const findCollectionId = async (api, jwt, collectionAddress) => {
+  let collections = await getCollections(api, jwt)
+
+  let matchingCollection = collections.data.find(
+    (collection) => collection.address === collectionAddress,
+  )
+
+  if (matchingCollection) {
+    return matchingCollection.id
+  } else {
+    console.log(`No collection found with address ${collectionAddress}`)
+    return
   }
 }
 
@@ -144,10 +203,14 @@ const mint = async (
   const tokenId = mintTx.events.TransferSingle.returnValues.id
 
   const mintInfo = {
+    name: nftObj.name,
+    description: nftObj.description,
     source_file_upload_id: sourceFileUploadId,
     tx_hash: mintTx.transactionHash,
     token_id: parseInt(tokenId),
-    mint_address: collectionAddress ?? params.default_nft_collection_address,
+    nft_collection_id: collectionAddress
+      ? await findCollectionId(api, jwt, collectionAddress)
+      : await findCollectionId(api, jwt, params.default_nft_collection_address),
   }
 
   const mintInfoResponse = await postMintInfo(api, jwt, mintInfo)
@@ -155,4 +218,4 @@ const mint = async (
   return mintInfoResponse
 }
 
-module.exports = { mint, createCollection, getCollections }
+module.exports = { mint, createCollection, getCollections, getMintInfo }
