@@ -145,7 +145,8 @@ const findCollectionId = async (api, jwt, collectionAddress) => {
   let collections = await getCollections(api, jwt)
 
   let matchingCollection = collections.data.find(
-    (collection) => collection.address === collectionAddress,
+    (collection) =>
+      collection.address.toLowerCase() === collectionAddress.toLowerCase(),
   )
 
   if (matchingCollection) {
@@ -204,7 +205,7 @@ const mint = async (
 
   const mintInfo = {
     name: nftObj.name,
-    description: nftObj.description,
+    description: nftObj.description ?? '',
     source_file_upload_id: sourceFileUploadId,
     tx_hash: mintTx.transactionHash,
     token_id: parseInt(tokenId),

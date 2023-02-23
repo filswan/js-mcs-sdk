@@ -13,6 +13,7 @@ describe('MCS SDK', function () {
   let size
   let ipfsUrl
   let fileName
+  let numCollections
   it('Should not allow initialize SDK without API key', async () => {
     expect(
       mcsSDK.initialize({
@@ -67,6 +68,24 @@ describe('MCS SDK', function () {
 
     it('Should pay for file', async () => {
       await mcs.makePayment(sourceFileUploadId, size)
+    })
+
+    it('Should get NFT collections', async () => {
+      const collections = await mcs.getCollections()
+      numCollections = collections.data.length
+      expect(collections.status).to.equal('success')
+    })
+
+    it('Should create NFT collection', async () => {
+      let metadata = {
+        name: 'test collection' + numCollections,
+        image: ipfsUrl,
+      }
+
+      const createResponse = await mcs.createCollection(metadata)
+
+      const collections = await mcs.getCollections()
+      expect(collections.data.length).to.equal(numCollections + 1)
     })
 
     it('Should mint NFT', async () => {
