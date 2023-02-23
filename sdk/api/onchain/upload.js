@@ -1,7 +1,12 @@
 const axios = require('axios')
-const { MCS_API } = require('../../utils/constants')
 const FormData = require('form-data')
+const fs = require('fs')
 const { Agent } = require('https')
+
+let getChildFile = (path) => {
+  let pathArray = path.split('/')
+  return pathArray[pathArray.length - 1]
+}
 
 const uploadPromise = (
   api,
@@ -30,29 +35,22 @@ const uploadPromise = (
   return res
 }
 
-const mcsUpload = async (api, jwt, files, options) => {
-  const delayIncrement = parseInt(options?.delay) || 1000
-  let apiDelay = 0
-
-  const requests = files.map((file) => {
-    apiDelay += delayIncrement // staggers each api call
-    return new Promise((resolve) => setTimeout(resolve, apiDelay)).then(() =>
-      uploadPromise(
-        api,
-        jwt,
-        file.fileName,
-        file.file,
-        options?.duration,
-        options?.fileType || 0,
-      ).then((res) => {
-        return res.data
-      }),
-    )
-  })
+const mcsUpload = async (api, jwt, filePath, options) => {
+  const file = {
+    fileName: getChildFile(filePath),
+    file: fs.createReadStream(filePath),
+  }
 
   try {
-    const result = await Promise.all(requests) // wait for all uploads
-    return result
+    const res = await uploadPromise(
+      api,
+      jwt,
+      file.fileName,
+      file.file,
+      options?.duration,
+      options?.fileType || 0,
+    )
+    return res.data
   } catch (err) {
     if (err.response?.data?.status === 'error') {
       console.error(err.response.data?.message)
@@ -62,4 +60,24 @@ const mcsUpload = async (api, jwt, files, options) => {
   }
 }
 
-module.exports = { mcsUpload }
+const metadataUpload = async (api, jwt, fileName, file, options) => {
+  try {
+    const res = await uploadPromise(
+      api,
+      jwt,
+      fileName,
+      file,
+      options?.duration,
+      options?.fileType || 1,
+    )
+    return res.data
+  } catch (err) {
+    if (err.response?.data?.status === 'error') {
+      console.error(err.response.data?.message)
+    } else {
+      console.error(err)
+    }
+  }
+}
+
+module.exports = { mcsUpload, metadataUpload }

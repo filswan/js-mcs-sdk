@@ -53,17 +53,12 @@ describe('MCS SDK', function () {
 
   describe('Onchain Storage functions', () => {
     it('Should upload a file', async () => {
-      const testFile = JSON.stringify({ address: mcs.walletAddress })
-      const fileArray = [
-        { fileName: `${mcs.walletAddress}.txt`, file: testFile },
-      ]
+      const uploadResponse = await mcs.upload('./mcs.test.js')
+      sourceFileUploadId = uploadResponse.data.source_file_upload_id
+      size = uploadResponse.data.file_size
+      ipfsUrl = uploadResponse.data.ipfs_url
 
-      const uploadResponse = await mcs.upload(fileArray)
-      sourceFileUploadId = uploadResponse[0].data.source_file_upload_id
-      size = uploadResponse[0].data.file_size
-      ipfsUrl = uploadResponse[0].data.ipfs_url
-
-      expect(uploadResponse[0].status).to.equal('success')
+      expect(uploadResponse.status).to.equal('success')
     })
 
     it('Should pay for file', async () => {

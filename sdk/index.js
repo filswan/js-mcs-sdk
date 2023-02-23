@@ -128,21 +128,18 @@ class mcsSDK {
 
   /**
    *
-   * @param {Object[]} files - the files to upload
-   * @param {string} files[].fileName - name of the file
-   * @param {file} files[].file - file contents
+   * @param {string} filePath - file contents
    * @param {Object} [options] - extra options
-   * @param {number} [options.delay=1000] - delay in ms between upload API calls
    * @param {number} [options.duration=525] - filecoin storage duration in days
    * @param {number} [options.fileType=0] - fileType 1 files will be hidden from the UI
    * @returns {Object[]}
    */
-  upload = async (files, options) => {
+  upload = async (filePath, options) => {
     if (!this.web3Initialized) {
       console.error('web3 not setup, call setupWeb3 first')
     }
 
-    return await mcsUpload(this.api, this.jwt, files, options)
+    return await mcsUpload(this.api, this.jwt, filePath, options)
   }
 
   /**
