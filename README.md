@@ -74,14 +74,18 @@ main()
 - Create a bucket
 
   ```js
-  let bucketData = await mcs.createBucket(<BUCKET_NAME>)
+  let bucketData = await mcs.createBucket('<BUCKET_NAME>')
   console.log(bucketData)
   ```
 
 - Upload a file to the bucket
 
   ```js
-  let fileData = mcs.uploadToBucket(<FILE_PATH>, <BUCKET_UID>, prefix="")
+  let fileData = mcs.uploadToBucket(
+    '<BUCKET_NAME>',
+    '<OBJECT_NAME>',
+    '<FILE_PATH>',
+  )
   console.log(fileData)
   ```
 
@@ -103,14 +107,14 @@ To use certain Onchain Storage features (upload, payment, minting), you will nee
 - Upload File to Onchain storage
 
   ```js
-  let uploadResponse = await mcs.upload([{ fileName: <FILE_NAME>, file: fs.createReadStream(<FILE_PATH>) }])
+  let uploadResponse = await mcs.upload('<FILE_PATH>')
   console.log(uploadResponse)
   ```
 
 - Pay for file storage
   after uploading, the response should return the `source_file_upload_id` and the file size.
   ```js
-  let tx = await mcs.makePayment(<SOURCE_FILE_UPLOAD_ID>, <FILE_SIZE>)
+  let tx = await mcs.makePayment('SOURCE_FILE_UPLOAD_ID>', '<FILE_SIZE>')
   console.log(transaction hash: ' + tx.transactionHash)
   ```
 
