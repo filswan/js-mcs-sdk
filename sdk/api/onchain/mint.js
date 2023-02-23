@@ -24,7 +24,7 @@ const createCollection = async (api, jwt, web3, payer, collectionJson) => {
   }
 
   const createTx = await factoryContract.methods
-    .createCollection(collection_uri)
+    .createCollection(collectionJson.name, collection_uri)
     .send(optionsObj)
 
   const collectionAddress =
