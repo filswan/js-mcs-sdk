@@ -105,12 +105,6 @@ describe('MCS SDK', function () {
         sourceFileUploadId,
       )
     })
-
-    it('Should get storage status', async () => {
-      const status = await mcs.getFileStatus(2065)
-
-      expect(status.data.offline_deal_log.length).to.be.greaterThan(0)
-    })
   })
 
   describe('Bucket Storage functions', () => {

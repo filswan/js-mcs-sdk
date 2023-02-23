@@ -32,7 +32,7 @@ const createCollection = async (api, jwt, web3, payer, collectionJson) => {
 
   let collectionInfo = {
     ...collectionJson,
-    txHash: createTx.transactionHash,
+    tx_hash: createTx.transactionHash,
     address: collectionAddress,
   }
 
