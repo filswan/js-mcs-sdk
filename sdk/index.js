@@ -82,11 +82,13 @@ class mcsSDK {
       jwt = (await getJwt(api, accessToken, apiKey, chainName)).jwt_token
     }
 
+    let sdk = new mcsSDK(chainName, accessToken, apiKey, jwt, api)
+
     if (privateKey && rpcUrl) {
-      await setupWeb3(privateKey, rpcUrl)
+      await sdk.setupWeb3(privateKey, rpcUrl)
     }
 
-    return new mcsSDK(chainName, accessToken, apiKey, jwt, api)
+    return sdk
   }
 
   /**
