@@ -1,13 +1,20 @@
 const packageJson = require('./package.json')
 const Web3 = require('web3')
 
-const API = require('./helper/constants')
-const { lockToken } = require('./api/makePayment')
-const { getDealDetail } = require('./api/dealDetail')
-const { mint } = require('./api/mint')
-const { mcsUpload } = require('./api/upload')
-const { getFileStatus } = require('./api/fileStatus')
-const { getDealList } = require('./api/dealList')
+const API = require('./utils/constants')
+const { lockToken } = require('./api/onchain/makePayment')
+const {
+  mint,
+  createCollection,
+  getCollections,
+  getMintInfo,
+} = require('./api/onchain/mint')
+const { mcsUpload } = require('./api/onchain/upload')
+const {
+  getDealDetail,
+  getDealList,
+  getFileStatus,
+} = require('./api/onchain/deals')
 const {
   getBuckets,
   createBucket,
@@ -22,7 +29,7 @@ const {
   deleteFile,
   createFolder,
 } = require('./api/buckets/files')
-const { getJwt } = require('./helper/getJwt')
+const { getJwt } = require('./utils/getJwt')
 
 class mcsSDK {
   /**
@@ -59,7 +66,7 @@ class mcsSDK {
     let api
     if (chainName === 'polygon.mainnet') {
       api = API.MCS_API
-    } else if (chainName == 'polygon.mumbai') {
+    } else if (chainName === 'polygon.mumbai') {
       api = API.MCS_MUMBAI_API
     } else {
       console.error('unknown chain name')
@@ -75,11 +82,13 @@ class mcsSDK {
       jwt = (await getJwt(api, accessToken, apiKey, chainName)).jwt_token
     }
 
+    let sdk = new mcsSDK(chainName, accessToken, apiKey, jwt, api)
+
     if (privateKey && rpcUrl) {
-      await setupWeb3(privateKey, rpcUrl)
+      await sdk.setupWeb3(privateKey, rpcUrl)
     }
 
-    return new mcsSDK(chainName, accessToken, apiKey, jwt, api)
+    return sdk
   }
 
   /**
@@ -121,27 +130,18 @@ class mcsSDK {
 
   /**
    *
-   * @param {Object[]} files - the files to upload
-   * @param {string} files[].fileName - name of the file
-   * @param {file} files[].file - file contents
+   * @param {string} filePath - file contents
    * @param {Object} [options] - extra options
-   * @param {number} [options.delay=1000] - delay in ms between upload API calls
    * @param {number} [options.duration=525] - filecoin storage duration in days
    * @param {number} [options.fileType=0] - fileType 1 files will be hidden from the UI
    * @returns {Object[]}
    */
-  upload = async (files, options) => {
+  upload = async (filePath, options) => {
     if (!this.web3Initialized) {
       console.error('web3 not setup, call setupWeb3 first')
     }
 
-    return await mcsUpload(
-      this.api,
-      this.walletAddress,
-      this.jwt,
-      files,
-      options,
-    )
+    return await mcsUpload(this.api, this.jwt, filePath, options)
   }
 
   /**
@@ -188,7 +188,16 @@ class mcsSDK {
    * @param {string} [tx_hash] - payment tx hash
    * @returns {Object} mint info reponse object
    */
-  mintAsset = async (sourceFileUploadId, nft, generateMetadata = true) => {
+  mintAsset = async (
+    sourceFileUploadId,
+    nft = {},
+    collectionAddress = undefined,
+    recipient = this.walletAddress,
+    quantity = 1,
+  ) => {
+    if (!this.web3Initialized) {
+      console.error('web3 not setup, call setupWeb3 first')
+    }
     return await mint(
       this.api,
       this.jwt,
@@ -198,8 +207,38 @@ class mcsSDK {
         ? sourceFileUploadId.parseInt()
         : sourceFileUploadId,
       nft,
-      generateMetadata,
+      collectionAddress,
+      recipient,
+      quantity,
     )
+  }
+
+  /**
+   * Creates a new NFT collection
+   * @param {Object} collection - nft metadata
+   * @param {string} collection.name - name of nft
+   * @param {string} [collection.description] - nft description
+   * @param {string} [collection.image] - link to collection asset, usually IPFS endpoint
+   */
+  createCollection = async (collection) => {
+    if (!this.web3Initialized) {
+      console.error('web3 not setup, call setupWeb3 first')
+    }
+    return await createCollection(
+      this.api,
+      this.jwt,
+      this.web3,
+      this.walletAddress,
+      collection,
+    )
+  }
+
+  getCollections = async () => {
+    return await getCollections(this.api, this.jwt)
+  }
+
+  getMintInfo = async (sourceFileUploadId) => {
+    return await getMintInfo(this.api, this.jwt, sourceFileUploadId)
   }
 
   /**
@@ -250,31 +289,38 @@ class mcsSDK {
     return await getBuckets(this.api, this.jwt)
   }
 
+  getBucket = async (bucketName) => {
+    let list = (await this.getBucketList()).data
+    return list.find((b) => (b.bucket_name = bucketName))
+  }
+
   /**
    * Delete a MCS Bucket
-   * @param {string} bucketUid - bucket uid
+   * @param {string} bucketName - bucket name
    * @returns {Object}
    */
-  deleteBucket = async (bucketUid) => {
-    return await deleteBucket(this.api, this.jwt, bucketUid)
+  deleteBucket = async (bucketName) => {
+    let bucket = await this.getBucket(bucketName)
+    return await deleteBucket(this.api, this.jwt, bucket.bucket_uid)
   }
 
   /**
    * Get file list
-   * @param {string} bucketUid - bucket uid
+   * @param {string} bucketName - bucket name
    * @param {Object} params
    * @param {string} [params.prefix=''] - gets file list from this path in the bucket
    * @param {number} [params.limit=10] - limit the result list
    * @param {number} [params.offset=0] - offset the results
    * @returns {Object[]} - file data
    */
-  getFileList = async (bucketUid, params) => {
+  getFileList = async (bucketName, params) => {
+    let bucket = await this.getBucket(bucketName)
     if (!params) params = { prefix: '', limit: 10, offset: 0 }
     let prefix = params.prefix || ''
     let limit = params.limit || 10
     let offset = params.offset || 0
 
-    let list = await getFileList(this.api, this.jwt, bucketUid, {
+    let list = await getFileList(this.api, this.jwt, bucket.bucket_uid, {
       prefix,
       limit,
       offset,
@@ -285,21 +331,22 @@ class mcsSDK {
 
   /**
    * Get file list
-   * @param {string} bucketUid - bucket uid
+   * @param {string} bucketName - bucket name
    * @param {Object} params
    * @param {string} [params.prefix=''] - gets file list from this path in the bucket
    * @param {number} [params.limit=10] - limit the result list
    * @param {number} [params.offset=0] - offset the results
    * @returns {Object[]} - file data
    */
-  getFiles = async (bucketUid, params) => {
+  getFiles = async (bucketName, params) => {
+    let bucket = await this.getBucket(bucketName)
     if (!params) params = { prefix: '', limit: 10, offset: 0 }
     let prefix = params.prefix || ''
     let limit = params.limit || 10
     let offset = params.offset || 0
 
     // console.log('params:', { prefix, limit, offset })
-    let list = await getFileList(this.api, this.jwt, bucketUid, {
+    let list = await getFileList(this.api, this.jwt, bucket.bucket_uid, {
       prefix,
       limit,
       offset,
@@ -313,8 +360,9 @@ class mcsSDK {
    * @param {string} fileId - fileId
    * @returns {Array} - file data
    */
-  getFileInfo = async (fileId) => {
-    return await getFileInfo(this.api, this.jwt, fileId)
+  getFileInfo = async (bucketName, objectName) => {
+    let bucket = await this.getBucket(bucketName)
+    return await getFileInfo(this.api, this.jwt, bucket.bucket_uid, objectName)
   }
 
   /**
@@ -322,41 +370,44 @@ class mcsSDK {
    * @param {string} fileId - fileId
    * @returns {Array} - file data
    */
-  deleteFile = async (fileId) => {
-    return await deleteFile(this.api, this.jwt, fileId)
+  deleteFile = async (bucketName, objectName) => {
+    let file = await this.getFileInfo(bucketName, objectName)
+    return await deleteFile(this.api, this.jwt, file.data.id)
   }
 
   /**
    * Create new folder
-   * @param {string} bucketUid - bucket uid
+   * @param {string} bucketName - bucket name
    * @param {string} folderName - name for new folder
    * @param {string} [prefix=''] - path in bucket for new folder
    * @returns {Array} - folder data
    */
-  createFolder = async (bucketUid, folderName, prefix = '') => {
-    return await createFolder(this.api, this.jwt, bucketUid, folderName, prefix)
+  createFolder = async (bucketName, objectName) => {
+    let bucket = await this.getBucket(bucketName)
+    return await createFolder(this.api, this.jwt, bucket.bucket_uid, objectName)
   }
 
   /**
    * Create new folder
+   * @param {string} bucketName - bucket uid
+   * @param {string} objectName - path in bucket for file
    * @param {string} filePath - path to file
-   * @param {string} bucketUid - bucket uid
-   * @param {string} [folder=''] - path in bucket for file
    * @returns {Array} - upload data
    */
   uploadToBucket = async (
+    bucketName,
+    objectName,
     filePath,
-    bucketUid,
-    folder = '',
-    options = { log: false },
+    replace = false,
   ) => {
+    let bucket = await this.getBucket(bucketName)
     return await uploadToBucket(
       this.api,
       this.jwt,
+      bucket.bucket_uid,
+      objectName,
       filePath,
-      bucketUid,
-      folder,
-      options.log ?? false,
+      replace,
     )
   }
 
@@ -365,17 +416,25 @@ class mcsSDK {
    * @param {string} fileId - file id
    * @param {string} outputDirectory - where to download the file
    */
-  downloadFile = async (fileId, outputDirectory = '.') => {
-    return await downloadFile(this.api, this.jwt, fileId, outputDirectory)
+  downloadFile = async (bucketName, objectName, outputDirectory = '.') => {
+    let bucket = await this.getBucket(bucketName)
+    return await downloadFile(
+      this.api,
+      this.jwt,
+      bucket.bucket_uid,
+      objectName,
+      outputDirectory,
+    )
   }
 
   /**
    * Rename bucket
-   * @param {string} bucketUid - bucket uid
-   * @param {string} bucketName - new bucket name
+   * @param {string} oldName - bucket uid
+   * @param {string} newName - new bucket name
    */
-  renameBucket = async (bucketUid, bucketName) => {
-    return await renameBucket(this.api, this.jwt, bucketUid, bucketName)
+  renameBucket = async (oldName, newName) => {
+    let bucket = await this.getBucket(oldName)
+    return await renameBucket(this.api, this.jwt, bucket.bucket_uid, newName)
   }
 }
 

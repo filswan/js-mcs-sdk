@@ -1,8 +1,8 @@
-const erc20ABI = require('../abi/ERC20.json')
-const swanPaymentABI = require('../abi/SwanPayment.json')
+const erc20ABI = require('./abi/ERC20.json')
+const swanPaymentABI = require('./abi/SwanPayment.json')
 const axios = require('axios')
-const { getParams } = require('../helper/params')
-const { getAveragePrice } = require('../helper/averagePrice.js')
+const { getParams } = require('../../utils/params')
+const { getAveragePrice } = require('../../utils/averagePrice.js')
 
 const getFilePaymentStatus = async (api, jwt, sourceFileUploadId) => {
   const config = {
@@ -53,7 +53,7 @@ const lockToken = async (
     amount = await getAveragePrice(api, jwt, payer, size)
   }
 
-  const params = await getParams(api)
+  const params = await getParams(api, jwt)
 
   const usdcAddress = params.usdc_address
   const recipientAddress = params.payment_recipient_address
@@ -65,7 +65,6 @@ const lockToken = async (
   const optionsObj = {
     from: payer,
     gas: gasLimit,
-    gasPrice: await web3.eth.getGasPrice(),
   }
 
   const USDCInstance = new web3.eth.Contract(erc20ABI, usdcAddress)
