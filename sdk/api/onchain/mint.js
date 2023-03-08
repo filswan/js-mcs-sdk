@@ -27,18 +27,14 @@ const createCollection = async (api, jwt, web3, payer, collectionJson) => {
     .createCollection(collectionJson.name, collection_uri)
     .send(optionsObj)
 
-  const collectionAddress =
-    createTx.events.CreateCollection.returnValues.collectionAddress
-
   let collectionInfo = {
     ...collectionJson,
     tx_hash: createTx.transactionHash,
-    address: collectionAddress,
   }
 
-  await postCollectionInfo(api, jwt, collectionInfo)
+  let res = await postCollectionInfo(api, jwt, collectionInfo)
 
-  return collectionInfo
+  return { ...res, tx_hash: createTx.transactionHash }
 }
 
 const getMintInfo = async (api, jwt, id) => {
