@@ -109,6 +109,32 @@ let merge = async (api, jwt, file, hash, bucket_uid, prefix) => {
   }
 }
 
+const buildObjectPath = async (api, jwt, bucketUid, objectName) => {
+  const config = {
+    headers: { Authorization: `Bearer ${jwt}` },
+  }
+
+  let folderName = getChildFile(objectName)
+  let prefix = getPrefix(objectName)
+
+  while (folderName) {
+    try {
+      await axios.post(
+        `${api}/v2/oss_file/create_folder`,
+        {
+          file_name: folderName,
+          prefix,
+          bucket_uid: bucketUid,
+        },
+        config,
+      )
+    } catch (e) {}
+
+    folderName = getChildFile(prefix)
+    prefix = getPrefix(prefix)
+  }
+}
+
 const uploadToBucket = async (
   api,
   jwt,
@@ -160,6 +186,8 @@ const uploadFile = async (
   if (!res.data.ipfs_is_exist && !res.data.file_is_exist) {
     res = await merge(api, jwt, fileName, md5.hash, bucketUid, prefix)
   }
+
+  res = getFileInfo(api, jwt, bucketUid, objectName)
 
   return res
 }
@@ -316,4 +344,6 @@ module.exports = {
   getFileInfo,
   deleteFile,
   createFolder,
+  buildObjectPath,
+  getPrefix,
 }

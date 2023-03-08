@@ -28,6 +28,8 @@ const {
   getFileInfo,
   deleteFile,
   createFolder,
+  getPrefix,
+  buildObjectPath,
 } = require('./api/buckets/files')
 const { getJwt } = require('./utils/getJwt')
 
@@ -401,7 +403,7 @@ class mcsSDK {
     replace = false,
   ) => {
     let bucket = await this.getBucket(bucketName)
-    return await uploadToBucket(
+    let uploadResponse = await uploadToBucket(
       this.api,
       this.jwt,
       bucket.bucket_uid,
@@ -409,6 +411,11 @@ class mcsSDK {
       filePath,
       replace,
     )
+
+    let folderPath = getPrefix(objectName)
+    await buildObjectPath(this.api, this.jwt, bucket.bucket_uid, folderPath)
+
+    return uploadResponse
   }
 
   /**
