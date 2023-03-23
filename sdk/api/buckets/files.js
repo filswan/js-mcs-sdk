@@ -4,6 +4,7 @@ const fs = require('fs')
 const { request } = require('urllib')
 const SparkMD5 = require('spark-md5')
 const FormData = require('form-data')
+const { getGateway } = require('../../utils/gateway')
 let path = require('path')
 
 // Function to extract the file name from a file path
@@ -246,11 +247,14 @@ const downloadFile = async (
       console.error('file not found')
     }
 
+    let gateways = await getGateway(api, jwt) // { status, data: [<gateways>] }
+    let gateway = gateways.data[0]
+
     let name = outputDirectory.endsWith('/')
       ? outputDirectory + file.data.name
       : outputDirectory + '/' + file.data.name
 
-    let res = await request(file.data.ipfs_url)
+    let res = await request(`https://${gateway}/ipfs/${file.data.payload_cid}`)
 
     await fs.promises.writeFile(name, res.data, (err) => {
       if (err) {

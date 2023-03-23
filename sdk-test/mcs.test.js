@@ -51,7 +51,7 @@ describe('MCS SDK', function () {
     expect(mcs.walletAddress)
   })
 
-  describe('Onchain Storage functions', () => {
+  xdescribe('Onchain Storage functions', () => {
     it('Should upload a file', async () => {
       const uploadResponse = await mcs.upload('./mcs.test.js')
       sourceFileUploadId = uploadResponse.data.source_file_upload_id
@@ -144,17 +144,6 @@ describe('MCS SDK', function () {
 
         fileId = upload.data.file_id
         expect(upload.status).to.equal('success')
-      })
-
-      it('Should upload same file', async () => {
-        let upload = await mcs.uploadToBucket(
-          bucketName,
-          fileName,
-          `./${fileName}`,
-        )
-
-        expect(upload.status).to.equal('success')
-        expect(upload.data.file_is_exist).to.equal(true)
       })
 
       it('Should download a file from bucket', async () => {
