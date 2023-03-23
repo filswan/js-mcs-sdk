@@ -32,6 +32,7 @@ const {
   buildObjectPath,
 } = require('./api/buckets/files')
 const { getJwt } = require('./utils/getJwt')
+const { getGateway } = require('./utils/gateway')
 
 class mcsSDK {
   /**
@@ -442,6 +443,11 @@ class mcsSDK {
   renameBucket = async (oldName, newName) => {
     let bucket = await this.getBucket(oldName)
     return await renameBucket(this.api, this.jwt, bucket.bucket_uid, newName)
+  }
+
+  getGateway = async () => {
+    let gateways = await getGateway(this.api, this.jwt) // { status, data: [<gateways>] }
+    return gateways.data[0]
   }
 }
 
