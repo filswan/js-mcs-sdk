@@ -168,6 +168,10 @@ const uploadFile = async (
   replace,
 ) => {
   let fileName = getChildFile(objectName)
+  if (!fileName) {
+    throw new Error('File name cannot be empty')
+  }
+
   let prefix = getPrefix(objectName)
   let md5 = await hashFile(filePath)
 
@@ -323,6 +327,10 @@ const createFolder = async (api, jwt, bucketUid, objectName) => {
 
   let folderName = getChildFile(objectName)
   let prefix = getPrefix(objectName)
+
+  if (!folderName) {
+    throw new Error('Folder name cannot be empty')
+  }
 
   try {
     const res = await axios.post(
