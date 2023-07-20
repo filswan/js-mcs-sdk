@@ -2,19 +2,6 @@ const packageJson = require('./package.json')
 const Web3 = require('web3')
 
 const API = require('./utils/constants')
-const { lockToken } = require('./api/onchain/makePayment')
-const {
-  mint,
-  createCollection,
-  getCollections,
-  getMintInfo,
-} = require('./api/onchain/mint')
-const { mcsUpload } = require('./api/onchain/upload')
-const {
-  getDealDetail,
-  getDealList,
-  getFileStatus,
-} = require('./api/onchain/deals')
 const {
   getBuckets,
   createBucket,
@@ -38,14 +25,12 @@ class mcsSDK {
   /**
    * @constructor
    */
-  constructor(chainName, accessToken, apiKey, jwt, api) {
+  constructor(apiKey, jwt, api) {
     this.version = packageJson.version
-    this.accessToken = accessToken
     this.apiKey = apiKey
     this.jwt = jwt
     this.api = api
     this.web3Initialized = false
-    this.chainName = chainName
   }
 
   /**
@@ -58,40 +43,29 @@ class mcsSDK {
    * @param {string} [rpcUrl="https://polygon-rpc.com/"] - RPC url (must match chain name env)
    * @returns {Object} MCS SDK instance
    */
-  static async initialize({
-    privateKey,
-    rpcUrl = 'https://polygon-rpc.com/',
-    chainName = 'polygon.mainnet',
-    accessToken,
-    apiKey,
-    jwt,
-  } = {}) {
-    let api
-    if (chainName === 'polygon.mainnet') {
-      api = API.MCS_API
-    } else if (chainName === 'polygon.mumbai') {
-      api = API.MCS_MUMBAI_API
-    } else {
-      console.error('unknown chain name')
-    }
+  static async initialize({ apiKey, isCalibration = false } = {}) {
+    let api = API.MCS_API
+    // if (chainName === 'polygon.mainnet') {
+    //   api = API.MCS_API
+    // } else if (chainName === 'polygon.mumbai') {
+    //   api = API.MCS_MUMBAI_API
+    // } else {
+    //   console.error('unknown chain name')
+    // }
 
-    if (!accessToken || !apiKey) {
+    if (isCalibration) api = API.MCS_MUMBAI_API
+
+    if (!apiKey) {
       console.error(
-        'Missing access token/API key. Please check your parameters, or visit https://www.multichain.storage/ to generate an API key.',
+        'Missing API key. Please check your parameters, or visit https://www.multichain.storage/ to generate an API key.',
       )
+    } else {
+      let jwt = await getJwt(api, apiKey)
+
+      let sdk = new mcsSDK(apiKey, jwt, api)
+
+      return sdk
     }
-
-    if (!jwt) {
-      jwt = (await getJwt(api, accessToken, apiKey, chainName)).jwt_token
-    }
-
-    let sdk = new mcsSDK(chainName, accessToken, apiKey, jwt, api)
-
-    if (privateKey && rpcUrl) {
-      await sdk.setupWeb3(privateKey, rpcUrl)
-    }
-
-    return sdk
   }
 
   /**
@@ -129,142 +103,6 @@ class mcsSDK {
       privateKey,
     ).address
     this.web3Initialized = true
-  }
-
-  /**
-   *
-   * @param {string} filePath - file contents
-   * @param {Object} [options] - extra options
-   * @param {number} [options.duration=525] - filecoin storage duration in days
-   * @param {number} [options.fileType=0] - fileType 1 files will be hidden from the UI
-   * @returns {Object[]}
-   */
-  upload = async (filePath, options) => {
-    if (!this.web3Initialized) {
-      console.error('web3 not setup, call setupWeb3 first')
-    }
-
-    return await mcsUpload(this.api, this.jwt, filePath, options)
-  }
-
-  /**
-   * Makes payment for unpaid files on MCS. Throws error if file is already paid.
-   * @param {number} sourceFileUploadId
-   * @param {string} size - file size in bytes
-   * @param {string} [amount=""] - pass amount as string to avoid BN precision errors
-   * @returns {Object} payment transaction response
-   */
-  makePayment = async (sourceFileUploadId, size, amount = '') => {
-    if (!this.web3Initialized) {
-      console.error('web3 not setup, call setupWeb3 first')
-    }
-
-    let tx = await lockToken(
-      this.api,
-      this.jwt,
-      this.web3,
-      this.walletAddress,
-      sourceFileUploadId,
-      amount,
-      size,
-    )
-
-    return tx
-  }
-
-  /**
-   * get filecoin status for file
-   * @param {number} dealId
-   * @returns {Object} file status on MCS
-   */
-  getFileStatus = async (dealId) => {
-    return await getFileStatus(this.api, this.jwt, dealId)
-  }
-
-  /**
-   * Mints file as NFT availiable to view on Opensea
-   * @param {number} sourceFileUploadId
-   * @param {Object} nft - nft metadata
-   * @param {string} nft.name - name of nft
-   * @param {string} [nft.description] - nft description
-   * @param {string} image - link to nft asset, usually IPFS endpoint
-   * @param {string} [tx_hash] - payment tx hash
-   * @returns {Object} mint info reponse object
-   */
-  mintAsset = async (
-    sourceFileUploadId,
-    nft = {},
-    collectionAddress = undefined,
-    recipient = this.walletAddress,
-    quantity = 1,
-  ) => {
-    if (!this.web3Initialized) {
-      console.error('web3 not setup, call setupWeb3 first')
-    }
-    return await mint(
-      this.api,
-      this.jwt,
-      this.web3,
-      this.walletAddress,
-      typeof sourceFileUploadId === 'string'
-        ? sourceFileUploadId.parseInt()
-        : sourceFileUploadId,
-      nft,
-      collectionAddress,
-      recipient,
-      quantity,
-    )
-  }
-
-  /**
-   * Creates a new NFT collection
-   * @param {Object} collection - nft metadata
-   * @param {string} collection.name - name of nft
-   * @param {string} [collection.description] - nft description
-   * @param {string} [collection.image] - link to collection asset, usually IPFS endpoint
-   */
-  createCollection = async (collection) => {
-    if (!this.web3Initialized) {
-      console.error('web3 not setup, call setupWeb3 first')
-    }
-    return await createCollection(
-      this.api,
-      this.jwt,
-      this.web3,
-      this.walletAddress,
-      collection,
-    )
-  }
-
-  getCollections = async () => {
-    return await getCollections(this.api, this.jwt)
-  }
-
-  getMintInfo = async (sourceFileUploadId) => {
-    return await getMintInfo(this.api, this.jwt, sourceFileUploadId)
-  }
-
-  /**
-   * List the user's uploaded files on MCS
-   * @param {Object} params
-   * @param {string} [params.wallet] - shows files for an address
-   * @param {string} [params.fileName] - filter by file_name
-   * @param {number} [params.pageNumber=1]
-   * @param {number} [params.pageSize=10]
-   * @returns {Object[]} API list reponse
-   */
-  getDealList = async (params) => {
-    if (!params) params = { wallet: this.walletAddress }
-    return await getDealList(this.api, this.jwt, params)
-  }
-
-  /**
-   * @param {Number} sourceFileUploadId
-   * @param {Number} dealId - dealId can be found from listUploads
-   * @returns {Object}
-   */
-  getFileDetails = async (sourceFileUploadId, dealId) => {
-    return await getDealDetail(this.api, this.jwt, sourceFileUploadId, dealId)
   }
 
   /**

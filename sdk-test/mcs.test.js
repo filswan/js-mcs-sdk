@@ -14,22 +14,6 @@ describe('MCS SDK', function () {
   let ipfsUrl
   let fileName
   let numCollections
-  it('Should not allow initialize SDK without API key', async () => {
-    expect(
-      mcsSDK.initialize({
-        accessToken: process.env.ACCESS_TOKEN,
-      }),
-    ).to.eventually.be.throw()
-  })
-
-  it('Should not allow initialize SDK without Access Token', async () => {
-    expect(
-      mcsSDK.initialize({
-        apiKey: process.env.API_KEY,
-      }),
-    ).to.eventually.be.throw()
-  })
-
   it('Should not allow initialize SDK with empty parameters', async () => {
     expect(mcsSDK.initialize()).to.eventually.be.throw()
     expect(mcsSDK.initialize({})).to.eventually.be.throw()
@@ -37,69 +21,11 @@ describe('MCS SDK', function () {
 
   it('Should initialize SDK', async () => {
     mcs = await mcsSDK.initialize({
-      accessToken: process.env.CALI_ACCESS_TOKEN,
       apiKey: process.env.CALI_API_KEY,
-      chainName: 'polygon.mumbai',
+      isCalibration: true,
     })
 
     expect(mcs)
-  })
-
-  it('Should setup web3', async () => {
-    expect(mcs.walletAddress).to.be.undefined
-    await mcs.setupWeb3(process.env.PRIVATE_KEY, process.env.RPC_URL)
-    expect(mcs.walletAddress)
-  })
-
-  xdescribe('Onchain Storage functions', () => {
-    it('Should upload a file', async () => {
-      const uploadResponse = await mcs.upload('./mcs.test.js')
-      sourceFileUploadId = uploadResponse.data.source_file_upload_id
-      size = uploadResponse.data.file_size
-      ipfsUrl = uploadResponse.data.ipfs_url
-
-      expect(uploadResponse.status).to.equal('success')
-    })
-
-    it('Should pay for file', async () => {
-      await mcs.makePayment(sourceFileUploadId, size)
-    })
-
-    it('Should get NFT collections', async () => {
-      const collections = await mcs.getCollections()
-      numCollections = collections.data.length
-      expect(collections.status).to.equal('success')
-    })
-
-    it('Should create NFT collection', async () => {
-      let metadata = {
-        name: 'test collection' + numCollections,
-        image: ipfsUrl,
-      }
-
-      const createResponse = await mcs.createCollection(metadata)
-
-      const collections = await mcs.getCollections()
-      expect(collections.data.length).to.equal(numCollections + 1)
-    })
-
-    it('Should mint NFT', async () => {
-      let metadata = {
-        name: 'test NFT',
-        image: ipfsUrl,
-      }
-
-      const mintResponse = await mcs.mintAsset(sourceFileUploadId, metadata)
-      expect(mintResponse.status).to.equal('success')
-    })
-
-    it('Should get uploads', async () => {
-      const uploads = await mcs.getDealList()
-
-      expect(uploads.data.source_file_upload[0].source_file_upload_id).to.equal(
-        sourceFileUploadId,
-      )
-    })
   })
 
   describe('Bucket Storage functions', () => {
@@ -141,6 +67,8 @@ describe('MCS SDK', function () {
           fileName,
           `./${fileName}`,
         )
+
+        console.log(upload)
 
         fileId = upload.data.file_id
         expect(upload.status).to.equal('success')

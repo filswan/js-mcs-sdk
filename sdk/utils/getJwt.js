@@ -1,11 +1,9 @@
 const axios = require('axios')
 
-const getJwt = async (api, accessToken, apiKey, loginNetwork) => {
+const getJwt = async (api, apiKey) => {
   try {
-    const response = await axios.post(`${api}/v1/user/login_by_api_key`, {
+    const response = await axios.post(`${api}/v2/user/login_by_api_key`, {
       apikey: apiKey,
-      access_token: accessToken,
-      network: loginNetwork,
     })
 
     if (response?.data.status === 'error') {

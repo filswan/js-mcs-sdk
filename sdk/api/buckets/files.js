@@ -177,6 +177,8 @@ const uploadFile = async (
 
   let res = await check(api, jwt, fileName, md5.hash, bucketUid, prefix)
 
+  console.log(res)
+
   if (res.status === 'error') {
     console.error(res.message)
   }
