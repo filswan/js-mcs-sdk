@@ -68,8 +68,6 @@ describe('MCS SDK', function () {
           `./${fileName}`,
         )
 
-        console.log(upload)
-
         fileId = upload.data.file_id
         expect(upload.status).to.equal('success')
       })
